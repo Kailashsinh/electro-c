@@ -7,8 +7,10 @@ import { serviceRequestApi } from '@/api/serviceRequests';
 import StatusBadge from '@/components/StatusBadge';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, CheckCircle, Truck, Clock, MapPin, User, Phone, Navigation, Radar, Calendar, TrendingUp, XCircle } from 'lucide-react';
+import { ClipboardList, CheckCircle, Truck, Clock, MapPin, User, Phone, Navigation, Radar, Calendar, TrendingUp, XCircle, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import ImageGallery from '@/components/ImageGallery';
+import ChatCard from '@/components/ChatCard';
 
 const TechnicianDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -16,6 +18,7 @@ const TechnicianDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [completeRequestId, setCompleteRequestId] = useState<string | null>(null);
@@ -275,6 +278,12 @@ const TechnicianDashboard: React.FC = () => {
                         </div>
                       </div>
 
+                      {req.issue_images && req.issue_images.length > 0 && (
+                        <div className="mt-4 mb-6">
+                          <ImageGallery images={req.issue_images} />
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-3">
                         {getActions(req).map((a) => (
                           <button
@@ -294,6 +303,12 @@ const TechnicianDashboard: React.FC = () => {
                             <Navigation className="w-4 h-4" /> Map
                           </button>
                         )}
+                        <button
+                          onClick={() => setActiveChat(req._id)}
+                          className="px-4 py-2.5 bg-indigo-50 text-indigo-700 rounded-xl text-sm font-bold border border-indigo-100 hover:bg-indigo-100 transition-colors flex items-center gap-2"
+                        >
+                          <MessageCircle className="w-4 h-4" /> Chat
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -352,6 +367,17 @@ const TechnicianDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Chat Card Overlay */}
+      {activeChat && (
+        <ChatCard
+          requestId={activeChat}
+          currentUserId={user?._id || ''}
+          currentUserRole="technician"
+          onClose={() => setActiveChat(null)}
+        />
+      )}
+
       {/* OTP Verification Modal */}
       {
         showOtpModal && (

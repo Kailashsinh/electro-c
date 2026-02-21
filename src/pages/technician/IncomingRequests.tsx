@@ -5,6 +5,7 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, DollarSign, Navigation, CheckCircle, XCircle, AlertCircle, Radar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ImageGallery from '@/components/ImageGallery';
 
 const IncomingRequests: React.FC = () => {
     const { toast } = useToast();
@@ -146,6 +147,14 @@ const IncomingRequests: React.FC = () => {
                                                         <p className="text-xs text-gray-500">Verified User</p>
                                                     </div>
                                                 </div>
+
+                                                {/* Issue Images */}
+                                                {req.issue_images && req.issue_images.length > 0 && (
+                                                    <div className="mt-6 pt-6 border-t border-gray-100">
+                                                        <p className="text-xs font-bold text-gray-400 uppercase mb-3 tracking-wider">Issue Photos</p>
+                                                        <ImageGallery images={req.issue_images} />
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Actions */}

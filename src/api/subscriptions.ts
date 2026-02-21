@@ -6,6 +6,6 @@ export const subscriptionApi = {
 };
 
 export const subscriptionServiceApi = {
-  create: (data: { appliance_id: string; issue_desc: string; preferred_slot: string; latitude?: number; longitude?: number; address_details?: any }) =>
+  create: (data: any) =>
     apiClient.post('/subscription-services/create', data),
 };

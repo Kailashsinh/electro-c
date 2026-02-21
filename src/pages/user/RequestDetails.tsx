@@ -6,6 +6,8 @@ import StatusBadge from '@/components/StatusBadge';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, CheckCircle, Star } from 'lucide-react';
+import ImageGallery from '@/components/ImageGallery';
+import { useAuth } from '@/context/AuthContext';
 
 const statusFlow = ['pending', 'broadcasted', 'accepted', 'on_the_way', 'awaiting_approval', 'approved', 'in_progress', 'completed'];
 const statusLabels = ['Pending', 'Broadcasted', 'Accepted', 'On the Way', 'Awaiting', 'Approved', 'In Progress', 'Completed'];
@@ -70,7 +72,7 @@ const RequestDetails: React.FC = () => {
           <StatusBadge status={request.status} />
         </div>
 
-        {}
+        { }
         <div className="mb-8">
           <div className="flex items-center gap-0 overflow-x-auto pb-2">
             {statusFlow.map((s, i) => (
@@ -111,7 +113,13 @@ const RequestDetails: React.FC = () => {
           </div>
         </div>
 
-        {}
+        {request.issue_images && request.issue_images.length > 0 && (
+          <div className="mt-8 pt-8 border-t border-gray-100">
+            <ImageGallery images={request.issue_images} />
+          </div>
+        )}
+
+        { }
         {request.technician_id && (
           <div className="mt-6 p-4 rounded-xl border border-border bg-card/50">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
@@ -136,7 +144,7 @@ const RequestDetails: React.FC = () => {
           </div>
         )}
 
-        {}
+        { }
         <div className="mt-8 flex flex-wrap gap-3">
           {request.status === 'awaiting_approval' && (
             <>
@@ -163,6 +171,7 @@ const RequestDetails: React.FC = () => {
           )}
         </div>
       </motion.div>
+
     </div>
   );
 };

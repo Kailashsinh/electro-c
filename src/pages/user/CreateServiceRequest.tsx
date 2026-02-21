@@ -6,7 +6,7 @@ import { subscriptionServiceApi, subscriptionApi } from '@/api/subscriptions';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, MapPin, Calendar, Clock, PenTool, Smartphone, CreditCard } from 'lucide-react';
+import { CheckCircle, MapPin, Calendar, Clock, Smartphone, CreditCard, XCircle } from 'lucide-react';
 import LocationPicker from '@/components/LocationPicker';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import PaymentGatewayModal from '@/components/PaymentGatewayModal';
@@ -30,6 +30,11 @@ const CreateServiceRequest: React.FC = () => {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationMode, setLocationMode] = useState<'gps' | 'manual'>('gps');
   const [manualAddress, setManualAddress] = useState({ street: '', city: '', pincode: '' });
+
+  // Multi-photo state
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -71,12 +76,31 @@ const CreateServiceRequest: React.FC = () => {
           }));
 
           if (description) {
-            toast({ title: 'Detals Pre-filled', description: 'We copied your issue description from the troubleshooter.' });
+            toast({ title: 'Details Pre-filled', description: 'We copied your issue description from the troubleshooter.' });
           }
         }
       })
       .finally(() => setLoading(false));
   }, [state]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (imageFiles.length + files.length > 4) {
+      toast({ title: 'Limit Exceeded', description: 'You can only upload up to 4 images.', variant: 'destructive' });
+      return;
+    }
+
+    const newFiles = [...imageFiles, ...files];
+    setImageFiles(newFiles);
+
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews([...imagePreviews, ...newPreviews]);
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,52 +119,62 @@ const CreateServiceRequest: React.FC = () => {
   const submitRequest = async (paymentMethod?: string) => {
     setSubmitting(true);
     try {
-      const payload: any = {
-        appliance_id: form.appliance_id,
-        issue_desc: form.issue_desc,
-        preferred_slot: form.preferred_slot,
-        scheduled_date: form.scheduled_date,
-      };
+      const formData = new FormData();
+      formData.append('appliance_id', form.appliance_id);
+      formData.append('issue_desc', form.issue_desc);
+      formData.append('preferred_slot', form.preferred_slot);
+      formData.append('scheduled_date', form.scheduled_date);
+
+      imageFiles.forEach(file => {
+        formData.append('issue_images', file);
+      });
 
       if (locationMode === 'gps') {
-        payload.latitude = location!.lat;
-        payload.longitude = location!.lng;
+        formData.append('latitude', location!.lat.toString());
+        formData.append('longitude', location!.lng.toString());
       } else {
-        // Geocode the manual address to get Lat/Lng
         try {
-          const query = `${manualAddress.street}, ${manualAddress.city}, ${manualAddress.pincode}`;
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+          // Improve query for better accuracy
+          const query = `street=${encodeURIComponent(manualAddress.street)}&city=${encodeURIComponent(manualAddress.city)}&postalcode=${encodeURIComponent(manualAddress.pincode)}&country=India`;
+          console.log("Attempting geocoding for:", query);
+
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&${query}`);
           const data = await res.json();
+          console.log("Geocoding result:", data);
 
           if (data && data.length > 0) {
-            payload.latitude = parseFloat(data[0].lat);
-            payload.longitude = parseFloat(data[0].lon);
+            formData.append('latitude', data[0].lat);
+            formData.append('longitude', data[0].lon);
           } else {
-            console.warn("Geocoding returned no results. Using Pincode fallback.");
-            toast({ title: 'Location not found on map', description: 'We will use your Pincode to find technicians.', variant: 'default' });
-            payload.latitude = 0;
-            payload.longitude = 0;
+            console.warn("Geocoding returned no results for specific query. Retrying with pincode only.");
+            const resZip = await fetch(`https://nominatim.openstreetmap.org/search?format=json&postalcode=${manualAddress.pincode}&country=India`);
+            const dataZip = await resZip.json();
+
+            if (dataZip && dataZip.length > 0) {
+              formData.append('latitude', dataZip[0].lat);
+              formData.append('longitude', dataZip[0].lon);
+            } else {
+              formData.append('latitude', '0');
+              formData.append('longitude', '0');
+            }
           }
-        } catch (geoError) {
-          console.error("Geocoding failed", geoError);
-          toast({ title: 'Geocoding Failed', description: 'Network error. Using Pincode for matching.', variant: 'destructive' });
-          payload.latitude = 0;
-          payload.longitude = 0;
+        } catch (error) {
+          console.error("Geocoding error:", error);
+          formData.append('latitude', '0');
+          formData.append('longitude', '0');
         }
 
-        payload.address_details = {
+        formData.append('address_details', JSON.stringify({
           ...manualAddress,
           manual: true
-        };
+        }));
       }
 
       if (useSubscription) {
-        await subscriptionServiceApi.create(payload);
+        await subscriptionServiceApi.create(formData);
       } else {
-        await paymentApi.payVisitFee({
-          ...payload,
-          method: paymentMethod || 'UPI'
-        });
+        formData.append('method', paymentMethod || 'UPI');
+        await paymentApi.payVisitFee(formData);
       }
       toast({ title: 'Service request created!', description: 'Technicians will be notified.' });
       navigate('/user/requests');
@@ -156,7 +190,6 @@ const CreateServiceRequest: React.FC = () => {
 
   return (
     <div className="relative max-w-3xl mx-auto space-y-8">
-      { }
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="text-center md:text-left">
@@ -166,8 +199,6 @@ const CreateServiceRequest: React.FC = () => {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 border border-white/60 shadow-xl shadow-indigo-500/5">
         <form onSubmit={handleSubmit} className="space-y-8">
-
-          { }
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
               <Smartphone className="h-5 w-5 text-indigo-600" />
@@ -206,10 +237,35 @@ const CreateServiceRequest: React.FC = () => {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center justify-between">
+                  <span>Issue Photos (Optional)</span>
+                  <span className="text-xs text-gray-400 font-normal">{imageFiles.length}/4 images</span>
+                </label>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {imagePreviews.map((src, index) => (
+                    <motion.div key={index} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                      <img src={src} alt="Preview" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => removeImage(index)} className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  ))}
+
+                  {imageFiles.length < 4 && (
+                    <label className="aspect-square rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all text-gray-400 hover:text-indigo-600">
+                      <Smartphone className="w-6 h-6" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Add Photo</span>
+                      <input type="file" accept="image/*" multiple onChange={handleImageChange} className="hidden" />
+                    </label>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          { }
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
               <Calendar className="h-5 w-5 text-indigo-600" />
@@ -247,7 +303,6 @@ const CreateServiceRequest: React.FC = () => {
             </div>
           </div>
 
-          {/* Location Section */}
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -256,20 +311,8 @@ const CreateServiceRequest: React.FC = () => {
               </h2>
 
               <div className="flex bg-gray-100 p-1 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => setLocationMode('gps')}
-                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'gps' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                >
-                  Map / GPS
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLocationMode('manual')}
-                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                >
-                  Enter Address
-                </button>
+                <button type="button" onClick={() => setLocationMode('gps')} className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'gps' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>Map / GPS</button>
+                <button type="button" onClick={() => setLocationMode('manual')} className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>Enter Address</button>
               </div>
             </div>
 
@@ -283,47 +326,23 @@ const CreateServiceRequest: React.FC = () => {
                 {!location && <p className="text-xs text-amber-600 font-medium">⚠️ Please tap on the map to pin your exact location.</p>}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Street Address / Landmark</label>
-                  <input
-                    type="text"
-                    required={locationMode === 'manual'}
-                    value={manualAddress.street}
-                    onChange={(e) => setManualAddress({ ...manualAddress, street: e.target.value })}
-                    placeholder="e.g. Flat 402, Sunshine Apts, MG Road"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
-                  />
+                  <input type="text" required={locationMode === 'manual'} value={manualAddress.street} onChange={(e) => setManualAddress({ ...manualAddress, street: e.target.value })} placeholder="e.g. MG Road" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                  <input
-                    type="text"
-                    required={locationMode === 'manual'}
-                    value={manualAddress.city}
-                    onChange={(e) => setManualAddress({ ...manualAddress, city: e.target.value })}
-                    placeholder="e.g. Mumbai"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
-                  />
+                  <input type="text" required={locationMode === 'manual'} value={manualAddress.city} onChange={(e) => setManualAddress({ ...manualAddress, city: e.target.value })} placeholder="e.g. Mumbai" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
-                  <input
-                    type="text"
-                    required={locationMode === 'manual'}
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    value={manualAddress.pincode}
-                    onChange={(e) => setManualAddress({ ...manualAddress, pincode: e.target.value })}
-                    placeholder="e.g. 400001"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
-                  />
+                  <input type="text" required={locationMode === 'manual'} pattern="[0-9]{6}" maxLength={6} value={manualAddress.pincode} onChange={(e) => setManualAddress({ ...manualAddress, pincode: e.target.value })} placeholder="e.g. 400001" className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none" />
                 </div>
               </div>
             )}
           </div>
 
-          { }
           {subscription?.status === 'active' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-emerald-50/50 border border-emerald-100 cursor-pointer hover:bg-emerald-50 transition-colors" onClick={() => setUseSubscription(!useSubscription)}>
               <div className="flex items-center gap-4 w-full sm:w-auto">

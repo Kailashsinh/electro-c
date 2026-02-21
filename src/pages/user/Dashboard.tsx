@@ -7,8 +7,9 @@ import { applianceApi } from '@/api/appliances';
 import StatCard from '@/components/StatCard';
 import StatusBadge from '@/components/StatusBadge';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import { ClipboardList, Wrench, CreditCard, Star, ArrowRight, Sparkles, Plus, Zap } from 'lucide-react';
+import { ClipboardList, Wrench, CreditCard, Star, ArrowRight, Sparkles, Plus, Zap, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ChatCard from '@/components/ChatCard';
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } };
 const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } };
@@ -19,6 +20,7 @@ const UserDashboard: React.FC = () => {
   const [subscription, setSubscription] = useState<any>(null);
   const [appliances, setAppliances] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeChat, setActiveChat] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -42,11 +44,11 @@ const UserDashboard: React.FC = () => {
 
   return (
     <div className="relative space-y-10">
-      {}
+      { }
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
-      {}
+      { }
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight">
@@ -64,7 +66,7 @@ const UserDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {}
+      { }
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Requests"
@@ -97,7 +99,7 @@ const UserDashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {}
+        { }
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -147,17 +149,41 @@ const UserDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                      {req.technician_id && ['accepted', 'on_the_way', 'awaiting_approval', 'approved', 'in_progress'].includes(req.status) && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setActiveChat(req._id);
+                          }}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg font-medium text-xs hover:bg-indigo-100 transition-colors"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          Chat
+                        </button>
+                      )}
                       <StatusBadge status={req.status} />
-                      <ArrowRight className="h-5 w-5 text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                      <Link to={`/user/requests/${req._id}`}>
+                        <ArrowRight className="h-5 w-5 text-gray-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </motion.div>
           )}
+
+          {activeChat && (
+            <ChatCard
+              requestId={activeChat}
+              currentUserId={user?._id || ''}
+              currentUserRole="user"
+              onClose={() => setActiveChat(null)}
+            />
+          )}
         </motion.div>
 
-        {}
+        { }
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -171,12 +197,12 @@ const UserDashboard: React.FC = () => {
             </h2>
           </div>
 
-          {}
+          { }
           <div className="relative overflow-hidden rounded-3xl bg-[linear-gradient(120deg,#4c1d95,#9f1239,#92400e,#065f46)] text-white p-1 shadow-2xl shadow-gray-900/50 group transform transition-all hover:scale-[1.01]">
 
-            {}
+            { }
             <div className="relative h-full bg-black/40 backdrop-blur-xl rounded-[22px] p-7 overflow-hidden border border-white/10">
-              {}
+              { }
               <div className="absolute -top-20 -right-20 w-60 h-60 bg-yellow-500/20 rounded-full blur-[80px] pointer-events-none mix-blend-screen" />
               <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-purple-600/40 rounded-full blur-[80px] pointer-events-none mix-blend-screen" />
 
