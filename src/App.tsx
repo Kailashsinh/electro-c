@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Toaster as HotToaster } from 'react-hot-toast';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -35,6 +36,7 @@ import SmartTroubleshooter from "@/pages/user/SmartTroubleshooter";
 import TechnicianDashboard from "@/pages/technician/Dashboard";
 import IncomingRequests from "@/pages/technician/IncomingRequests";
 import TechnicianProfile from "@/pages/technician/TechnicianProfile";
+import VerificationPage from "@/pages/technician/VerificationPage";
 
 
 
@@ -69,9 +71,10 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <HotToaster />
         <BrowserRouter>
           <Routes>
-            {}
+            { }
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -82,7 +85,7 @@ const App = () => (
             <Route path="/verify-email" element={<VerifyEmailPage />} />
 
 
-            {}
+            { }
             <Route path="/user/dashboard" element={<UserLayout><UserDashboard /></UserLayout>} />
             <Route path="/user/appliances" element={<UserLayout><MyAppliances /></UserLayout>} />
             <Route path="/user/requests" element={<UserLayout><MyRequests /></UserLayout>} />
@@ -93,13 +96,14 @@ const App = () => (
             <Route path="/user/profile" element={<UserLayout><ProfilePage /></UserLayout>} />
             <Route path="/user/troubleshoot" element={<UserLayout><SmartTroubleshooter /></UserLayout>} />
 
-            {}
+            { }
             <Route path="/technician/dashboard" element={<TechLayout><TechnicianDashboard /></TechLayout>} />
             <Route path="/technician/requests" element={<TechLayout><IncomingRequests /></TechLayout>} />
             <Route path="/technician/profile" element={<TechLayout><TechnicianProfile /></TechLayout>} />
+            <Route path="/technician/verification" element={<TechLayout><VerificationPage /></TechLayout>} />
 
-            {}
-            {}
+            { }
+            { }
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminLayoutComponent />}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />

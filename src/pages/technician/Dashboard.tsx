@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
+import { authApi } from '@/api/auth';
 import { serviceRequestApi } from '@/api/serviceRequests';
 import StatusBadge from '@/components/StatusBadge';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useToast } from '@/hooks/use-toast';
-import { ClipboardList, CheckCircle, Truck, Clock, MapPin, User, Phone, Navigation, Radar, Calendar, TrendingUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ClipboardList, CheckCircle, Truck, Clock, MapPin, User, Phone, Navigation, Radar, Calendar, TrendingUp, XCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const TechnicianDashboard: React.FC = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -18,6 +21,16 @@ const TechnicianDashboard: React.FC = () => {
   const [completeRequestId, setCompleteRequestId] = useState<string | null>(null);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+  const [locationStatus, setLocationStatus] = useState<'active' | 'inactive' | 'denied'>('inactive');
+
+  // Redirect if pending verification or rejected
+  useEffect(() => {
+    if (user) {
+      if (user.verificationStatus === 'pending' || user.verificationStatus === 'rejected' || user.verificationStatus === 'submitted') {
+        navigate('/technician/verification');
+      }
+    }
+  }, [user, navigate]);
 
   const loadRequests = async () => {
     try {
@@ -26,7 +39,31 @@ const TechnicianDashboard: React.FC = () => {
     } catch { } finally { setLoading(false); }
   };
 
-  useEffect(() => { loadRequests(); }, []);
+  // Auto-update location on mount
+  useEffect(() => {
+    loadRequests();
+
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            await authApi.updateLocation(latitude, longitude);
+            setLocationStatus('active');
+            console.log("Location updated:", latitude, longitude);
+          } catch (error) {
+            console.error("Failed to update location:", error);
+            setLocationStatus('inactive');
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          if (error.code === 1) setLocationStatus('denied');
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+  }, []);
 
   const handleAction = async (requestId: string, action: string) => {
     setActionLoading(`${requestId}-${action}`);
@@ -107,7 +144,7 @@ const TechnicianDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen pb-20 space-y-6 md:space-y-8">
-      { }
+      {/* Header Section */}
       <div className="relative bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-gray-100 overflow-hidden">
         <div className="absolute right-0 top-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -122,6 +159,16 @@ const TechnicianDashboard: React.FC = () => {
               <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               Online
             </div>
+            {locationStatus === 'active' && (
+              <div className="bg-blue-50 text-blue-700 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold flex items-center gap-2 border border-blue-100">
+                <Navigation className="w-3 h-3" /> GPS Active
+              </div>
+            )}
+            {locationStatus === 'denied' && (
+              <div className="bg-red-50 text-red-700 px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-bold flex items-center gap-2 border border-red-100">
+                <Navigation className="w-3 h-3" /> GPS Denied
+              </div>
+            )}
             <div className="text-xs md:text-sm font-medium text-gray-500 bg-gray-50 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-gray-100">
               {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
             </div>
@@ -129,8 +176,37 @@ const TechnicianDashboard: React.FC = () => {
         </div>
       </div>
 
+      {user?.verificationStatus === 'submitted' && (
+        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-blue-900">Verification Under Review</h3>
+              <p className="text-sm text-blue-700">You have submitted your documents. Admin is reviewing your profile. You will be notified once approved.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {user?.status === 'suspended' && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-full text-red-600">
+              <XCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-red-900">Account Suspended</h3>
+              <p className="text-sm text-red-700">Your account is currently suspended. Please contact support.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        { }
+        {/* Main Column: Active Jobs (2/3 width) */}
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -186,7 +262,12 @@ const TechnicianDashboard: React.FC = () => {
                           <Phone className="w-4 h-4 text-gray-400" /> <span>{req.user_id?.phone}</span>
                         </div>
                         <div className="flex items-center gap-2 sm:col-span-2">
-                          <MapPin className="w-4 h-4 text-gray-400" /> <span className="truncate">{req.user_id?.address}</span>
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className="truncate">
+                            {req.address_details && (req.address_details.street || req.address_details.city)
+                              ? `${req.address_details.street || ''}, ${req.address_details.city || ''} ${req.address_details.pincode || ''}`
+                              : req.user_id?.address}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 sm:col-span-2 md:hidden">
                           <Calendar className="w-4 h-4 text-gray-400" />
@@ -243,7 +324,7 @@ const TechnicianDashboard: React.FC = () => {
             </div>
           </div>
 
-          { }
+          {/* Stats */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-900">Performance</h3>
@@ -272,58 +353,60 @@ const TechnicianDashboard: React.FC = () => {
         </div>
       </div>
       {/* OTP Verification Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
-          >
-            <div className="bg-indigo-600 p-6 text-center">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md">
-                <CheckCircle className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-white">Verify Completion</h3>
-              <p className="text-indigo-100 text-sm mt-1">Enter the OTP sent to the customer's email</p>
-            </div>
-
-            <div className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-700 ml-1">OTP Code</label>
-                <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="Enter 6-digit OTP"
-                  className="w-full text-center text-2xl tracking-[0.5em] font-bold py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
-                  maxLength={6}
-                />
+      {
+        showOtpModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="bg-indigo-600 p-6 text-center">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md">
+                  <CheckCircle className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Verify Completion</h3>
+                <p className="text-indigo-100 text-sm mt-1">Enter the OTP sent to the customer's email</p>
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => { setShowOtpModal(false); setOtp(''); }}
-                  className="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleVerifyOtp}
-                  disabled={otpLoading || otp.length < 6}
-                  className="flex-1 py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {otpLoading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    'Verify & Complete'
-                  )}
-                </button>
+              <div className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-700 ml-1">OTP Code</label>
+                  <input
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    placeholder="Enter 6-digit OTP"
+                    className="w-full text-center text-2xl tracking-[0.5em] font-bold py-4 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                    maxLength={6}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowOtpModal(false); setOtp(''); }}
+                    className="flex-1 py-3.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleVerifyOtp}
+                    disabled={otpLoading || otp.length < 6}
+                    className="flex-1 py-3.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {otpLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      'Verify & Complete'
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
+            </motion.div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

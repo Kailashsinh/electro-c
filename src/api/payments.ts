@@ -8,5 +8,6 @@ export const paymentApi = {
     method?: string;
     latitude?: number;
     longitude?: number;
+    address_details?: any;
   }) => apiClient.post('/payments/visit-fee', data),
 };

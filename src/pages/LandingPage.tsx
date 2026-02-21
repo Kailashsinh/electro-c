@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useSpring, useMotionValue, useTransform, useMotionTemplate } from 'framer-motion';
 import {
   Zap, Shield, Clock, ArrowRight,
-  Smartphone, MapPin, CheckCircle2, PlayCircle, Menu, X, Code2, Lock, Award, Star, Globe, Cpu, Users
+  Smartphone, MapPin, CheckCircle2, PlayCircle, Menu, X, Code2, Lock, Award, Star, Globe, Cpu, Users, Bot
 } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
@@ -109,7 +109,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden relative" onMouseMove={handleMouseMove}>
+    <section className="pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden relative" onMouseMove={handleMouseMove}>
       <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -144,19 +144,7 @@ const Hero = () => {
           <span className="text-indigo-600 font-bold"> The smartest way to fix your home.</span>
         </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24"
-        >
-          <Link to="/register" className="h-14 px-8 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto">
-            Book a Service <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link to="/login" className="h-14 px-8 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all w-full sm:w-auto shadow-sm">
-            <PlayCircle className="w-5 h-5" /> How it Works
-          </Link>
-        </motion.div>
+
 
         {/* 3D App Preview - Tablet Style */}
         <div className="relative max-w-5xl mx-auto perspective-1000 group">
@@ -201,7 +189,7 @@ const Hero = () => {
                   <div className="h-12 w-12 rounded-full bg-slate-100 animate-pulse border border-slate-200" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <div className="h-40 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 p-5 relative overflow-hidden group/card shadow-lg shadow-indigo-500/20 text-white">
                     <div className="absolute top-0 right-0 p-4 opacity-30"><Shield className="w-20 h-20 text-white group-hover/card:scale-110 transition-transform duration-500" /></div>
                     <div className="relative z-10 h-full flex flex-col justify-end">
@@ -241,6 +229,19 @@ const Hero = () => {
           {/* Decorative Glow Behind */}
           <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[3rem] blur-3xl -z-10 animate-pulse" />
         </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24 mt-16"
+        >
+          <Link to="/register" className="h-14 px-8 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto">
+            Book a Service <ArrowRight className="w-5 h-5" />
+          </Link>
+          <Link to="/login" className="h-14 px-8 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all w-full sm:w-auto shadow-sm">
+            <PlayCircle className="w-5 h-5" /> How it Works
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
@@ -273,16 +274,41 @@ const Features = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 auto-rows-[350px]">
           <BentoCard
-            className="md:col-span-2 bg-gradient-to-br from-indigo-900 to-slate-900 text-white border-0"
+            className="md:col-span-2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white border-0"
             light={false}
-            icon={<MapPin className="w-8 h-8 text-indigo-400" />}
+            icon={<Bot className="w-8 h-8 text-indigo-400" />}
+            title="AI Smart Troubleshooter"
+            desc="Not sure what's wrong? Our advanced AI diagnostic tool analyzes your appliance's symptoms to predict the issue and estimate repair costs instantly."
+            visual={
+              <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+                <div className="w-[500px] h-[500px] bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
+                <div className="grid grid-cols-6 gap-2 opacity-50 relative z-10 rotate-12 scale-150">
+                  {Array.from({ length: 24 }).map((_, i) => (
+                    <div key={i} className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                  ))}
+                </div>
+              </div>
+            }
+          />
+          <BentoCard
+            title="Technician Loyalty Program"
+            desc="Our technicians commit to the highest standards. Only those who maintain top-tier ratings and reliability scores stay active on our platform."
+            icon={<Award className="w-8 h-8 text-amber-500" />}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100"
+            light={true}
+          />
+          <BentoCard
+            className="md:col-span-2 bg-white border-slate-200"
+            light={true}
+            icon={<MapPin className="w-8 h-8 text-indigo-600" />}
             title="Smart Job Allocator"
             desc="Our geo-spatial algorithm instantly broadcasts requests to the nearest 20km radius of available technicians. Zero wait time."
             visual={
-              <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none mix-blend-screen">
-                <div className="w-96 h-96 rounded-full border border-indigo-500/50 animate-[ping_3s_ease-in-out_infinite]" />
-                <div className="absolute w-64 h-64 rounded-full border border-indigo-400/50 animate-[ping_3s_ease-in-out_infinite_0.5s]" />
-                <MapPin className="absolute w-20 h-20 text-indigo-300 drop-shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none overflow-hidden">
+                <div className="w-96 h-96 rounded-full border border-indigo-500 animate-[ping_3s_ease-in-out_infinite]" />
+                <div className="absolute w-64 h-64 rounded-full border border-indigo-400 animate-[ping_3s_ease-in-out_infinite_0.5s]" />
+                <MapPin className="absolute w-20 h-20 text-indigo-300" />
               </div>
             }
           />
@@ -299,14 +325,7 @@ const Features = () => {
             }
           />
           <BentoCard
-            title="Technician Loyalty Program"
-            desc="Our pro technicians earn points for every 5-star job. This ensures you always get motivated, high-quality talent."
-            icon={<Award className="w-8 h-8 text-amber-500" />}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100"
-            light={true}
-          />
-          <BentoCard
-            className="md:col-span-2 bg-white/50 backdrop-blur-sm border-purple-100"
+            className="md:col-span-3 bg-white/50 backdrop-blur-sm border-purple-100"
             title="Bi-Directional Feedback"
             desc="A fair marketplace where both users and technicians rate each other. This builds a trusted community where quality is rewarded."
             icon={<Star className="w-8 h-8 text-purple-500" />}

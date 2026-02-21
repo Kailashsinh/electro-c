@@ -94,9 +94,9 @@ const RequestManagement: React.FC = () => {
                                 </td>
                                 <td className="p-4">
                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${req.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                            req.status === 'pending' || req.status === 'broadcasted' ? 'bg-yellow-100 text-yellow-800' :
-                                                req.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                                    'bg-blue-100 text-blue-800'
+                                        req.status === 'pending' || req.status === 'broadcasted' ? 'bg-yellow-100 text-yellow-800' :
+                                            req.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                                'bg-blue-100 text-blue-800'
                                         }`}>
                                         {req.status?.charAt(0).toUpperCase() + req.status?.slice(1)}
                                     </span>
@@ -104,7 +104,7 @@ const RequestManagement: React.FC = () => {
                                 <td className="p-4">
                                     <div className="flex items-center gap-2 text-gray-500">
                                         <Calendar className="w-3.5 h-3.5" />
-                                        <span className="text-sm">{new Date(req.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-sm">{new Date(req.created_at).toLocaleDateString()}</span>
                                     </div>
                                 </td>
                                 <td className="p-4 text-right">

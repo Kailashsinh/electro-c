@@ -21,6 +21,7 @@ export interface RegisterTechnicianPayload {
   skills: string[];
   latitude?: number;
   longitude?: number;
+  pincode?: string;
 }
 
 export interface ForgotPasswordPayload {
@@ -34,7 +35,7 @@ export interface ResetPasswordPayload {
 }
 
 export const authApi = {
-  
+
   loginUser: (data: LoginPayload) => apiClient.post('/auth/user/login', data),
   registerUser: (data: RegisterUserPayload) => apiClient.post('/auth/user/register', data),
   verifyEmailUser: (data: { email: string; otp: string }) => apiClient.post('/auth/user/verify-email', data),
@@ -45,7 +46,7 @@ export const authApi = {
   updateProfile: (data: any) => apiClient.put('/users/profile', data),
   changePassword: (data: any) => apiClient.put('/users/password', data),
 
-  
+
   loginTechnician: (data: LoginPayload) => apiClient.post('/auth/technician/login', data),
   registerTechnician: (data: RegisterTechnicianPayload) => apiClient.post('/auth/technician/register', data),
   verifyEmailTechnician: (data: { email: string; otp: string }) => apiClient.post('/auth/technician/verify-email', data),
@@ -54,7 +55,8 @@ export const authApi = {
   resetPasswordTechnician: (data: ResetPasswordPayload) => apiClient.post('/auth/technician/reset-password', data),
   getTechnicianProfile: () => apiClient.get('/technician/profile'),
   updateTechnicianProfile: (data: any) => apiClient.put('/technician/profile', data),
+  updateLocation: (latitude: number, longitude: number) => apiClient.patch('/technician/location', { latitude, longitude }),
 
-  
+
   loginAdmin: (data: { email: string; password: string }) => apiClient.post('/auth/admin/login', data),
 };

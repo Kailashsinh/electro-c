@@ -1,14 +1,77 @@
 import React, { useState } from 'react';
 import { adminApi } from '@/api/admin';
-import { FileText, Download, Loader2 } from 'lucide-react';
+import { FileText, Download, Loader2, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const Reports: React.FC = () => {
     const [generating, setGenerating] = useState<string | null>(null);
     const { toast } = useToast();
 
+    const generatePDF = async (type: 'users' | 'technicians' | 'revenue', title: string) => {
+        setGenerating(`${type}-pdf`);
+        try {
+            const res = await adminApi.getReportData(type);
+            const data = res.data;
+
+            if (!data || data.length === 0) {
+                toast({ title: 'No Data', description: 'No records found to generate report.', variant: 'default' });
+                return;
+            }
+
+            const doc = new jsPDF();
+            doc.setFontSize(18);
+            doc.text(`ElectroCare - ${title}`, 14, 22);
+            doc.setFontSize(11);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+
+            let head: string[][] = [];
+            let body: any[][] = [];
+
+            if (type === 'users') {
+                head = [['Name', 'Email', 'Phone', 'Wallet', 'Status', 'Points']];
+                body = data.map((u: any) => [
+                    u.name, u.email, u.phone, u.wallet_balance, u.isVerified ? 'Verified' : 'Pending', u.loyalty_points
+                ]);
+            } else if (type === 'technicians') {
+                head = [['Name', 'Phone', 'Skills', 'Rating', 'Jobs', 'Status']];
+                body = data.map((t: any) => [
+                    t.name, t.phone, t.skills?.join(', '), t.rating?.toFixed(1) || 'N/A', t.completed_jobs, t.isVerified ? 'Verified' : 'Unverified'
+                ]);
+            } else if (type === 'revenue') {
+                head = [['Date', 'User', 'Type', 'Amount', 'Platform Share']];
+                body = data.map((r: any) => [
+                    new Date(r.date).toLocaleDateString(), r.user, r.type, r.amount, r.platform_share
+                ]);
+
+                const totalAmount = data.reduce((sum: number, i: any) => sum + i.amount, 0);
+                const totalShare = data.reduce((sum: number, i: any) => sum + i.platform_share, 0);
+                body.push(['TOTAL', '', '', totalAmount, totalShare]);
+            }
+
+            autoTable(doc, {
+                head: head,
+                body: body,
+                startY: 40,
+                theme: 'grid',
+                styles: { fontSize: 9 },
+                headStyles: { fillColor: [79, 70, 229] } // Indigo-600
+            });
+
+            doc.save(`electrocare_${type}_report_${new Date().toISOString().split('T')[0]}.pdf`);
+            toast({ title: 'Success', description: 'PDF Report downloaded successfully.' });
+
+        } catch (err) {
+            console.error(err);
+            toast({ title: 'Error', description: 'Failed to generate PDF report.', variant: 'destructive' });
+        } finally {
+            setGenerating(null);
+        }
+    };
+
     const generateCSV = async (type: 'users' | 'technicians' | 'revenue', title: string) => {
-        setGenerating(type);
+        setGenerating(`${type}-csv`);
         try {
             const res = await adminApi.getReportData(type);
             const data = res.data;
@@ -35,9 +98,9 @@ const Reports: React.FC = () => {
             } else if (type === 'revenue') {
                 header = "Date,User,Type,Amount,Platform Share";
                 rows = data.map((r: any) =>
-                    `"${new Date(r.date).toLocaleDateString()}","${r.user}","${r.type}",${r.amount},${r.platform_share}`
+                    `"${new Date(r.date).toISOString().split('T')[0]}","${r.user}","${r.type}",${r.amount},${r.platform_share}`
                 );
-                
+
                 const totalAmount = data.reduce((sum: number, i: any) => sum + i.amount, 0);
                 const totalShare = data.reduce((sum: number, i: any) => sum + i.platform_share, 0);
                 rows.push(`"TOTAL","","",${totalAmount},${totalShare}`);
@@ -53,11 +116,11 @@ const Reports: React.FC = () => {
             link.click();
             document.body.removeChild(link);
 
-            toast({ title: 'Success', description: 'Report downloaded successfully.' });
+            toast({ title: 'Success', description: 'CSV Report downloaded successfully.' });
 
         } catch (err) {
             console.error(err);
-            toast({ title: 'Error', description: 'Failed to generate report.', variant: 'destructive' });
+            toast({ title: 'Error', description: 'Failed to generate CSV report.', variant: 'destructive' });
         } finally {
             setGenerating(null);
         }
@@ -85,14 +148,24 @@ const Reports: React.FC = () => {
                         <h3 className="font-bold text-lg text-gray-900 mb-2">{report.title}</h3>
                         <p className="text-sm text-gray-500 mb-6 flex-1">{report.desc}</p>
 
-                        <button
-                            onClick={() => generateCSV(report.id as any, report.title)}
-                            disabled={!!generating}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50"
-                        >
-                            {generating === report.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                            Download CSV
-                        </button>
+                        <div className="flex w-full gap-2">
+                            <button
+                                onClick={() => generatePDF(report.id as any, report.title)}
+                                disabled={!!generating}
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                            >
+                                {generating === `${report.id}-pdf` ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                                PDF
+                            </button>
+                            <button
+                                onClick={() => generateCSV(report.id as any, report.title)}
+                                disabled={!!generating}
+                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm font-medium"
+                            >
+                                {generating === `${report.id}-csv` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                                CSV
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>

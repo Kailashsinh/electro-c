@@ -17,7 +17,7 @@ const IncomingRequests: React.FC = () => {
         try {
             const res = await serviceRequestApi.getTechnicianRequests();
             const allRequests = res.data?.requests || res.data || [];
-            
+
             const incoming = allRequests.filter((r: any) => ['pending', 'broadcasted'].includes(r.status));
             setRequests(incoming);
         } catch (error) {
@@ -34,9 +34,9 @@ const IncomingRequests: React.FC = () => {
         try {
             await serviceRequestApi.accept(requestId);
             toast({ title: 'Request Accepted', description: 'You can now start this job from your Dashboard.' });
-            
+
             setRequests(prev => prev.filter(r => r._id !== requestId));
-            setTimeout(() => navigate('/technician/dashboard'), 1000); 
+            setTimeout(() => navigate('/technician/dashboard'), 1000);
         } catch (error: any) {
             toast({ title: 'Accept Failed', description: error.response?.data?.message || 'Could not accept request', variant: 'destructive' });
         } finally {
@@ -48,7 +48,7 @@ const IncomingRequests: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50/50 pb-20">
-            {}
+            { }
             <div className="bg-gray-900 text-white pt-8 pb-20 px-4 md:pt-10 md:pb-24 md:px-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
@@ -116,7 +116,11 @@ const IncomingRequests: React.FC = () => {
                                                 <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
                                                     <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
                                                         <MapPin className="w-4 h-4 text-indigo-500" />
-                                                        <span className="font-medium">{req.user_id?.address?.split(',')[0] || 'Location Hidden'}</span>
+                                                        <span className="font-medium">
+                                                            {req.address_details && (req.address_details.street || req.address_details.city)
+                                                                ? `${req.address_details.street || ''}, ${req.address_details.city || ''} ${req.address_details.pincode || ''}`
+                                                                : (req.user_id?.address || 'Location Hidden')}
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
                                                         <Clock className="w-4 h-4 text-indigo-500" />

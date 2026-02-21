@@ -12,12 +12,12 @@ const RegisterPage: React.FC = () => {
   const roleParam = (searchParams.get('role') as UserRole) || 'user';
   const [roleTab, setRoleTab] = useState<'user' | 'technician'>(roleParam === 'technician' ? 'technician' : 'user');
 
-  
+
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', address: '', skills: '', latitude: 0, longitude: 0 });
   const [otp, setOtp] = useState('');
   const [showOtp, setShowOtp] = useState(false);
 
-  
+
   const [loading, setLoading] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
 
@@ -63,7 +63,7 @@ const RegisterPage: React.FC = () => {
       } else {
         const skills = form.skills.split(',').map((s) => s.trim()).filter(Boolean);
 
-        
+
         if (form.latitude === 0 && form.longitude === 0) {
           toast({ title: 'Location Required', description: 'Please fetch your current location to register.', variant: 'destructive' });
           setLoading(false);
@@ -81,7 +81,7 @@ const RegisterPage: React.FC = () => {
         });
       }
 
-      
+
       setShowOtp(true);
       toast({ title: 'Registration Successful', description: 'Please check your email for the OTP.' });
 
@@ -119,7 +119,7 @@ const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex relative overflow-hidden">
-      {}
+      { }
       <div className="hidden lg:flex lg:w-1/2 relative section-gradient-bg items-center justify-center p-12">
         <ParticleBackground />
         <div className="relative z-10 max-w-md">
@@ -152,9 +152,9 @@ const RegisterPage: React.FC = () => {
         </div>
       </div>
 
-      {}
+      { }
       <div className="flex-1 flex items-center justify-center p-6 bg-gray-50/50 relative">
-        {}
+        { }
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
@@ -167,13 +167,13 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div className="glass-card p-8 relative overflow-hidden">
-            {}
+            { }
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
 
             <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Create account</h1>
             <p className="text-gray-500 text-center text-sm mb-8">Get started with ElectroCare today</p>
 
-            {}
+            { }
             {!showOtp && (
               <div className="flex bg-gray-100/80 p-1.5 rounded-xl mb-6">
                 {(['user', 'technician'] as const).map((r) => (
@@ -189,7 +189,7 @@ const RegisterPage: React.FC = () => {
 
             <AnimatePresence mode="wait">
               {showOtp ? (
-                
+
                 <motion.form
                   key="otp-form"
                   initial={{ opacity: 0, x: 20 }}
@@ -238,6 +238,7 @@ const RegisterPage: React.FC = () => {
                   ) : (
                     <>
                       <input name="skills" value={form.skills} onChange={handleChange} required placeholder="Skills (comma-separated)" className="input-field" />
+                      <input name="pincode" value={(form as any).pincode || ''} onChange={handleChange} required placeholder="Base Pincode (for requests)" className="input-field" />
 
                       <div className="flex items-center gap-2">
                         <button

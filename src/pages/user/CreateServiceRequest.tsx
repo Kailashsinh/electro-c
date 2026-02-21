@@ -28,6 +28,8 @@ const CreateServiceRequest: React.FC = () => {
   });
   const [useSubscription, setUseSubscription] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationMode, setLocationMode] = useState<'gps' | 'manual'>('gps');
+  const [manualAddress, setManualAddress] = useState({ street: '', city: '', pincode: '' });
   const { toast } = useToast();
   const navigate = useNavigate();
   const { state } = useLocation();
@@ -78,8 +80,8 @@ const CreateServiceRequest: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!location) {
-      toast({ title: 'Location Required', description: 'Please select a location on the map.', variant: 'destructive' });
+    if (locationMode === 'gps' && !location) {
+      toast({ title: 'Location Required', description: 'Please pin your location on the map.', variant: 'destructive' });
       return;
     }
 
@@ -93,14 +95,44 @@ const CreateServiceRequest: React.FC = () => {
   const submitRequest = async (paymentMethod?: string) => {
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         appliance_id: form.appliance_id,
         issue_desc: form.issue_desc,
         preferred_slot: form.preferred_slot,
         scheduled_date: form.scheduled_date,
-        latitude: location!.lat,
-        longitude: location!.lng,
       };
+
+      if (locationMode === 'gps') {
+        payload.latitude = location!.lat;
+        payload.longitude = location!.lng;
+      } else {
+        // Geocode the manual address to get Lat/Lng
+        try {
+          const query = `${manualAddress.street}, ${manualAddress.city}, ${manualAddress.pincode}`;
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+          const data = await res.json();
+
+          if (data && data.length > 0) {
+            payload.latitude = parseFloat(data[0].lat);
+            payload.longitude = parseFloat(data[0].lon);
+          } else {
+            console.warn("Geocoding returned no results. Using Pincode fallback.");
+            toast({ title: 'Location not found on map', description: 'We will use your Pincode to find technicians.', variant: 'default' });
+            payload.latitude = 0;
+            payload.longitude = 0;
+          }
+        } catch (geoError) {
+          console.error("Geocoding failed", geoError);
+          toast({ title: 'Geocoding Failed', description: 'Network error. Using Pincode for matching.', variant: 'destructive' });
+          payload.latitude = 0;
+          payload.longitude = 0;
+        }
+
+        payload.address_details = {
+          ...manualAddress,
+          manual: true
+        };
+      }
 
       if (useSubscription) {
         await subscriptionServiceApi.create(payload);
@@ -124,7 +156,7 @@ const CreateServiceRequest: React.FC = () => {
 
   return (
     <div className="relative max-w-3xl mx-auto space-y-8">
-      {}
+      { }
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/5 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <div className="text-center md:text-left">
@@ -135,7 +167,7 @@ const CreateServiceRequest: React.FC = () => {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 border border-white/60 shadow-xl shadow-indigo-500/5">
         <form onSubmit={handleSubmit} className="space-y-8">
 
-          {}
+          { }
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
               <Smartphone className="h-5 w-5 text-indigo-600" />
@@ -177,7 +209,7 @@ const CreateServiceRequest: React.FC = () => {
             </div>
           </div>
 
-          {}
+          { }
           <div className="space-y-6">
             <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
               <Calendar className="h-5 w-5 text-indigo-600" />
@@ -215,20 +247,83 @@ const CreateServiceRequest: React.FC = () => {
             </div>
           </div>
 
-          {}
+          {/* Location Section */}
           <div className="space-y-6">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 pb-2 border-b border-gray-100">
-              <MapPin className="h-5 w-5 text-indigo-600" />
-              Location
-            </h2>
-            <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
-              <ErrorBoundary fallback={<div className="h-[300px] flex items-center justify-center bg-gray-50 text-red-500 p-4 text-center">Failed to load map.</div>}>
-                <LocationPicker onLocationSelect={setLocation} />
-              </ErrorBoundary>
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-indigo-600" />
+                Location
+              </h2>
+
+              <div className="flex bg-gray-100 p-1 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('gps')}
+                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'gps' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Map / GPS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLocationMode('manual')}
+                  className={`px-3 py-1 text-sm font-bold rounded-md transition-all ${locationMode === 'manual' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                >
+                  Enter Address
+                </button>
+              </div>
             </div>
+
+            {locationMode === 'gps' ? (
+              <div className="space-y-2">
+                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative z-0">
+                  <ErrorBoundary fallback={<div className="h-[300px] flex items-center justify-center bg-gray-50 text-red-500 p-4 text-center">Failed to load map.</div>}>
+                    <LocationPicker onLocationSelect={setLocation} />
+                  </ErrorBoundary>
+                </div>
+                {!location && <p className="text-xs text-amber-600 font-medium">⚠️ Please tap on the map to pin your exact location.</p>}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Street Address / Landmark</label>
+                  <input
+                    type="text"
+                    required={locationMode === 'manual'}
+                    value={manualAddress.street}
+                    onChange={(e) => setManualAddress({ ...manualAddress, street: e.target.value })}
+                    placeholder="e.g. Flat 402, Sunshine Apts, MG Road"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                  <input
+                    type="text"
+                    required={locationMode === 'manual'}
+                    value={manualAddress.city}
+                    onChange={(e) => setManualAddress({ ...manualAddress, city: e.target.value })}
+                    placeholder="e.g. Mumbai"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                  <input
+                    type="text"
+                    required={locationMode === 'manual'}
+                    pattern="[0-9]{6}"
+                    maxLength={6}
+                    value={manualAddress.pincode}
+                    onChange={(e) => setManualAddress({ ...manualAddress, pincode: e.target.value })}
+                    placeholder="e.g. 400001"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
-          {}
+          { }
           {subscription?.status === 'active' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row sm:items-center gap-4 p-5 rounded-2xl bg-emerald-50/50 border border-emerald-100 cursor-pointer hover:bg-emerald-50 transition-colors" onClick={() => setUseSubscription(!useSubscription)}>
               <div className="flex items-center gap-4 w-full sm:w-auto">
