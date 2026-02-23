@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { adminApi } from '@/api/admin';
 import { FileText, Download, Loader2, FileDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -133,42 +134,78 @@ const Reports: React.FC = () => {
     ];
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold text-gray-900">Reports Center</h1>
-                <p className="text-gray-500">Generate and download system reports (CSV).</p>
-            </div>
+        <div className="space-y-12 pb-20 relative overflow-hidden">
+            {/* Intelligence Header */}
+            <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-2"
+            >
+                <h1 className="text-3xl font-black text-slate-950 uppercase italic tracking-tight flex items-center gap-3">
+                    <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 shadow-lg shadow-indigo-500/10">
+                        <FileDown className="w-8 h-8" />
+                    </div>
+                    Intelligence <span className="text-indigo-600">Center</span>
+                </h1>
+                <p className="text-slate-500 font-bold italic text-sm pl-16">Generate and extract operational data dossiers across the grid.</p>
+            </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {reportTypes.map((report) => (
-                    <div key={report.id} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col items-start hover:shadow-md transition-shadow">
-                        <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center mb-4">
-                            <FileText className="w-6 h-6 text-red-600" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {reportTypes.map((report, idx) => (
+                    <motion.div
+                        key={report.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="glass-premium p-8 rounded-[2.5rem] border-white/60 shadow-xl flex flex-col items-start hover:shadow-2xl transition-all group relative overflow-hidden"
+                    >
+                        {/* Background Decoration */}
+                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-1000">
+                            <FileText className="h-40 w-40 text-indigo-600" />
                         </div>
-                        <h3 className="font-bold text-lg text-gray-900 mb-2">{report.title}</h3>
-                        <p className="text-sm text-gray-500 mb-6 flex-1">{report.desc}</p>
 
-                        <div className="flex w-full gap-2">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/5 group-hover:scale-110 transition-transform relative z-10">
+                            <FileText className="w-8 h-8 text-indigo-600" />
+                        </div>
+
+                        <div className="space-y-2 relative z-10 flex-1">
+                            <h3 className="font-black text-xl text-slate-950 uppercase italic tracking-tight">{report.title}</h3>
+                            <p className="text-sm text-slate-500 font-bold italic leading-relaxed">{report.desc}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 w-full gap-4 mt-10 relative z-10">
                             <button
                                 onClick={() => generatePDF(report.id as any, report.title)}
                                 disabled={!!generating}
-                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 text-sm font-medium"
+                                className="h-14 flex items-center justify-center gap-3 bg-indigo-600 text-white rounded-2xl hover:bg-slate-950 transition-all disabled:opacity-50 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-indigo-500/20 active:scale-95"
                             >
-                                {generating === `${report.id}-pdf` ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                                PDF
+                                {generating === `${report.id}-pdf` ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                                PDF Dossier
                             </button>
                             <button
                                 onClick={() => generateCSV(report.id as any, report.title)}
                                 disabled={!!generating}
-                                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 text-sm font-medium"
+                                className="h-14 flex items-center justify-center gap-3 bg-slate-100 text-slate-900 border border-slate-200 rounded-2xl hover:bg-slate-200 transition-all disabled:opacity-50 text-[10px] font-black uppercase tracking-widest active:scale-95"
                             >
-                                {generating === `${report.id}-csv` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                                CSV
+                                {generating === `${report.id}-csv` ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                                CSV Data
                             </button>
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
+
+            {/* Support Message */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="glass-premium p-8 rounded-[2rem] border-white/60 shadow-xl text-center max-w-2xl mx-auto"
+            >
+                <p className="text-slate-500 font-bold italic text-xs uppercase tracking-widest">
+                    Need custom data extraction? Contact system administration for advanced SQL vectors.
+                </p>
+            </motion.div>
         </div>
     );
 };

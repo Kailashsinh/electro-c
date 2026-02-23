@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '@/api/admin';
 import { Users, Wrench, Activity, IndianRupee } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -24,32 +25,78 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-500">Welcome back, here's what's happening today.</p>
-      </div>
+    <div className="space-y-12 relative overflow-hidden pb-10">
+      {/* Aurora Background for Admin HUD */}
+      <div className="absolute top-0 right-0 -z-10 w-[40%] h-[40%] bg-indigo-500/5 blur-[120px] rounded-full" />
+      <div className="absolute bottom-0 left-0 -z-10 w-[30%] h-[30%] bg-fuchsia-500/5 blur-[100px] rounded-full" />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card, idx) => (
-          <div key={idx} className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${card.bg}`}>
-              <card.icon className={`w-6 h-6 ${card.color}`} />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-              <p className="text-sm text-gray-500">{card.label}</p>
-            </div>
+      {/* Control Hub Header */}
+      <div className="glass-premium rounded-[2.5rem] p-10 border-white/60 shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
+          <Activity className="h-32 w-32 text-indigo-600" />
+        </div>
+        <div className="relative z-10 space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100/50 text-indigo-700 text-[10px] font-black uppercase tracking-[0.2em]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+            </span>
+            Operational Status: Nominal
           </div>
-        ))}
+          <h1 className="text-4xl md:text-5xl font-black text-slate-950 tracking-tighter uppercase italic leading-none">
+            Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600">Ops Center</span>
+          </h1>
+          <p className="text-slate-500 font-bold italic">
+            Command & Control Interface. System-wide telemetry synchronized at: {new Date().toLocaleTimeString()}
+          </p>
+        </div>
       </div>
 
-      {}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="flex gap-4">
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition">Example Action</button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition">Download Reports</button>
+      {/* Main Stats HUD */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <AnimatePresence>
+          {cards.map((card, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              className="glass-premium p-8 rounded-[2rem] border-white/60 shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:scale-125 transition-transform duration-700">
+                <card.icon className="h-24 w-24 text-indigo-600" />
+              </div>
+              <div className="flex flex-col gap-6 relative z-10">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.bg} border-2 border-white shadow-lg`}>
+                  <card.icon className={`w-6 h-6 ${card.color}`} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{card.label}</p>
+                  <p className="text-4xl font-black text-slate-950 italic mt-1">{card.value}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Strategic Actions Matrix */}
+      <div className="glass-premium rounded-[3rem] border-white/60 shadow-2xl p-10 overflow-hidden relative">
+        <div className="absolute bottom-0 right-0 p-10 opacity-[0.02]">
+          <Activity className="h-40 w-40" />
+        </div>
+        <div className="relative z-10">
+          <h2 className="text-xl font-black text-slate-950 uppercase italic mb-8 flex items-center gap-3">
+            Strategic Protocols
+          </h2>
+          <div className="flex flex-wrap gap-4">
+            <button className="h-14 px-8 bg-slate-950 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:shadow-2xl hover:shadow-indigo-500/40 transition-all hover:-translate-y-1">
+              Initialize Data Export
+            </button>
+            <button className="h-14 px-8 bg-white text-slate-950 border-2 border-slate-100 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all">
+              Audit System Logs
+            </button>
+          </div>
         </div>
       </div>
     </div>

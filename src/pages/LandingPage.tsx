@@ -38,6 +38,39 @@ const LandingPage: React.FC = () => {
   );
 };
 
+// --- Magnetic Effect Wrapper ---
+const MagneticButton = ({ children, className = "" }: { children: React.ReactNode, className?: string }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouse = (e: React.MouseEvent) => {
+    const { clientX, clientY } = e;
+    const { height, width, left, top } = ref.current!.getBoundingClientRect();
+    const middleX = clientX - (left + width / 2);
+    const middleY = clientY - (top + height / 2);
+    setPosition({ x: middleX * 0.3, y: middleY * 0.3 });
+  };
+
+  const reset = () => {
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const { x, y } = position;
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      animate={{ x, y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      className={`inline-block ${className}`}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
 // --- Sections ---
 
 const Navbar = () => {
@@ -51,28 +84,39 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white/60 backdrop-blur-xl border-b border-indigo-50 py-3 shadow-sm' : 'bg-transparent py-5'}`}>
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/40 backdrop-blur-2xl border-b border-white/20 py-3 shadow-xl shadow-indigo-500/5' : 'bg-transparent py-5'}`}>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold text-xl tracking-tighter hover:scale-105 transition-transform cursor-pointer group">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:shadow-indigo-500/30 transition-shadow">
-            <Zap className="h-6 w-6 fill-white" />
+        <div className="flex items-center gap-3 font-black text-2xl tracking-tighter hover:scale-105 transition-transform cursor-pointer group">
+          <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 group-hover:shadow-indigo-500/40 transition-all duration-500 hover:rotate-12">
+            <Zap className="h-7 w-7 fill-white" />
           </div>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-600">ElectroCare</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-indigo-900 to-violet-900">ElectroCare</span>
         </div>
 
-        <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-          <a href="#features" className="hover:text-indigo-600 transition-colors">Features</a>
-          <a href="#details" className="hover:text-indigo-600 transition-colors">Why Us</a>
-          <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">Process</a>
-          <div className="h-5 w-px bg-slate-200" />
-          <Link to="/login" className="text-slate-600 hover:text-indigo-600 transition-colors">Log in</Link>
-          <Link to="/register" className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-bold rounded-full hover:shadow-lg hover:shadow-indigo-500/30 active:scale-95 duration-200 transform transition-all">
-            Get Started
-          </Link>
+        <div className="hidden md:flex items-center gap-10 text-sm font-bold text-slate-700">
+          <a href="#features" className="hover:text-indigo-600 transition-colors relative group/link">
+            Features
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover/link:w-full" />
+          </a>
+          <a href="#details" className="hover:text-indigo-600 transition-colors relative group/link">
+            Why Us
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover/link:w-full" />
+          </a>
+          <a href="#how-it-works" className="hover:text-indigo-600 transition-colors relative group/link">
+            Process
+            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-indigo-600 transition-all duration-300 group-hover/link:w-full" />
+          </a>
+          <div className="h-6 w-px bg-slate-200" />
+          <Link to="/login" className="text-slate-700 hover:text-indigo-600 transition-all hover:translate-x-1">Log in</Link>
+          <MagneticButton>
+            <Link to="/register" className="btn-premium">
+              Get Started
+            </Link>
+          </MagneticButton>
         </div>
 
-        <button className="md:hidden p-2 text-slate-700 hover:bg-white/50 rounded-lg transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X /> : <Menu />}
+        <button className="md:hidden p-3 text-slate-700 hover:bg-white/50 rounded-2xl transition-all active:scale-90" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </button>
       </div>
 
@@ -109,139 +153,186 @@ const Hero = () => {
   };
 
   return (
-    <section className="pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden relative" onMouseMove={handleMouseMove}>
+    <section className="pt-24 pb-20 lg:pt-32 lg:pb-40 overflow-hidden relative" onMouseMove={handleMouseMove}>
+      {/* Animated Aurora Background purely for Hero */}
+      <div className="absolute inset-0 -z-10 bg-[#f8fafc] overflow-hidden">
+        <motion.div
+          className="absolute -inset-[100px] opacity-20 blur-[100px]"
+          style={{
+            background: useMotionTemplate`radial-gradient(circle at ${mouseX}px ${mouseY}px, rgba(79, 70, 229, 0.4) 0%, rgba(124, 58, 237, 0.2) 25%, transparent 50%)`
+          }}
+        />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100/50 via-transparent to-transparent" />
+      </div>
+
       <div className="max-w-7xl mx-auto px-6 text-center relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-100 bg-white/50 backdrop-blur-md text-indigo-700 text-xs font-bold uppercase tracking-wider mb-8 shadow-sm ring-1 ring-white/50"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, type: "spring" }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium text-indigo-700 text-xs font-black uppercase tracking-[0.2em] mb-10 shadow-xl shadow-indigo-500/10 border-indigo-200/50"
         >
-          <span className="relative flex h-2.5 w-2.5">
+          <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-600"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
           </span>
-          Now Live in India
+          Next-Gen Home Service
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 mb-8 leading-[0.9]"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="text-6xl md:text-8xl lg:text-[9rem] font-black tracking-[-0.05em] text-slate-950 mb-10 leading-[0.85] uppercase italic"
         >
-          Home service, <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 pb-2 animate-gradient bg-300%">reimagined.</span>
+          Fast. Reliable. <br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 pb-4 animate-gradient bg-300%">Efficient.</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto mb-16 leading-relaxed font-medium"
         >
-          Instant booking via geo-location, real-time technician tracking, and AI-powered appliance diagnostics.
-          <span className="text-indigo-600 font-bold"> The smartest way to fix your home.</span>
+          We've engineered the perfect home service experience. Instant booking, real-time tracking, and <span className="text-indigo-600 font-black glow-indigo">AI diagnostics</span> at your fingertips.
         </motion.p>
 
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-32 relative z-20">
+          <MagneticButton>
+            <Link to="/register" className="h-16 px-10 rounded-2xl bg-slate-950 text-white font-black flex items-center justify-center gap-3 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto text-lg group">
+              Fix it Now <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </MagneticButton>
+          <MagneticButton>
+            <Link to="/login" className="h-16 px-10 rounded-2xl glass-premium text-slate-900 font-bold flex items-center justify-center gap-3 hover:bg-white transition-all w-full sm:w-auto shadow-xl shadow-slate-200/50 text-lg">
+              <PlayCircle className="w-6 h-6 text-indigo-600" /> Watch Demo
+            </Link>
+          </MagneticButton>
+        </div>
 
+        {/* =========================================
+           RESPONSIVE 3D APP PREVIEW
+        ========================================= */}
+        <div className="relative max-w-6xl mx-auto">
 
-        {/* 3D App Preview - Tablet Style */}
-        <div className="relative max-w-5xl mx-auto perspective-1000 group">
-          <motion.div
-            initial={{ opacity: 0, rotateX: 20, y: 100 }}
-            animate={{ opacity: 1, rotateX: 0, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.4, type: "spring", stiffness: 50 }}
-            whileHover={{ scale: 1.02, rotateX: 5 }}
-            className="relative rounded-[2.5rem] bg-slate-900 p-[12px] shadow-2xl shadow-indigo-500/20 border-[6px] border-slate-800 ring-1 ring-white/10"
-          >
-            {/* Camera/Notch Area */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-xl z-20 flex items-center justify-center gap-2 shadow-lg">
-              <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-              <div className="w-12 h-1.5 rounded-full bg-slate-800" />
-            </div>
+          {/* ================= DESKTOP VERSION ================= */}
+          <div className="hidden lg:block perspective-[2000px]">
+            <motion.div
+              initial={{ opacity: 0, rotateX: 18, y: 100 }}
+              animate={{ opacity: 1, rotateX: 8, y: 0 }}
+              transition={{ duration: 1.2, type: "spring", stiffness: 40 }}
+              whileHover={{ rotateX: 4, rotateY: 2, scale: 1.02 }}
+              className="relative will-change-transform rounded-[3rem] bg-slate-950 p-[12px]
+                         shadow-[0_40px_80px_-20px_rgba(0,0,0,0.45)]
+                         border-[6px] border-slate-900"
+            >
+              {/* Reflection */}
+              <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[2.5rem]" />
 
-            {/* Screen Content */}
-            <div className="rounded-[2rem] overflow-hidden bg-slate-50 aspect-[16/10] relative grid grid-cols-12 gap-4 p-4 sm:p-6 bg-gradient-to-br from-indigo-50 to-violet-50">
-              {/* Sidebar (Tablet) */}
-              <div className="col-span-3 bg-white/60 backdrop-blur-md rounded-2xl shadow-sm border border-white/50 p-4 space-y-4 hidden md:flex flex-col">
-                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-400 to-violet-500 mb-4 animate-pulse shadow-md" />
-                <div className="h-3 w-24 rounded bg-slate-200/50" />
-                <div className="space-y-2 pt-4 flex-1">
-                  <div className="h-10 w-full rounded-xl bg-indigo-100 text-indigo-700 flex items-center px-3 text-xs font-bold gap-2 ring-1 ring-indigo-200">
-                    <div className="w-4 h-4 rounded bg-indigo-300" /> Dashboard
-                  </div>
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-10 w-full rounded-xl hover:bg-slate-100 flex items-center px-3 text-xs font-bold text-slate-400 gap-2 transition-colors">
-                      <div className="w-4 h-4 rounded bg-slate-200" /> Menu {i}
-                    </div>
+              {/* Screen */}
+              <div className="rounded-[2.5rem] overflow-hidden bg-white aspect-[16/10] grid grid-cols-12 shadow-inner">
+
+                {/* Sidebar */}
+                <div className="col-span-3 bg-slate-50 border-r p-6 space-y-6 flex flex-col">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-600" />
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-10 bg-slate-200 rounded-xl" />
                   ))}
                 </div>
-              </div>
 
-              {/* Main Content Area */}
-              <div className="col-span-12 md:col-span-9 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/60 p-6 relative overflow-hidden flex flex-col">
-                <div className="flex justify-between items-center mb-8">
-                  <div>
-                    <div className="h-8 w-48 rounded-lg bg-slate-200/50 mb-2" />
-                    <div className="h-4 w-32 rounded bg-slate-100" />
-                  </div>
-                  <div className="h-12 w-12 rounded-full bg-slate-100 animate-pulse border border-slate-200" />
-                </div>
+                {/* Main */}
+                <div className="col-span-9 p-8 flex flex-col relative">
+                  <div className="h-8 w-48 bg-slate-200 rounded-xl mb-8" />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <div className="h-40 rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 p-5 relative overflow-hidden group/card shadow-lg shadow-indigo-500/20 text-white">
-                    <div className="absolute top-0 right-0 p-4 opacity-30"><Shield className="w-20 h-20 text-white group-hover/card:scale-110 transition-transform duration-500" /></div>
-                    <div className="relative z-10 h-full flex flex-col justify-end">
-                      <div className="font-bold text-lg">Verified Pro</div>
-                      <div className="text-indigo-100 text-xs mt-1">Background Checked</div>
+                  <div className="grid grid-cols-2 gap-6 mb-auto">
+                    <div className="h-40 rounded-2xl bg-indigo-600 text-white p-6 shadow-lg">
+                      <div className="text-xl font-black">
+                        ACCORDING TO YOUR TIME
+                      </div>
+                      <div className="text-xs opacity-80 uppercase tracking-widest font-bold">
+                        Arrival on time
+                      </div>
+                    </div>
+
+                    <div className="h-40 rounded-2xl bg-white border p-6 shadow">
+                      <div className="text-xl font-black">
+                        STAY SAFE
+                      </div>
+                      <div className="text-xs text-slate-400 uppercase tracking-widest font-bold">
+                        OTP Secure Closure
+                      </div>
                     </div>
                   </div>
-                  <div className="h-40 rounded-2xl bg-white border border-slate-100 p-5 relative overflow-hidden group/card shadow-sm hover:shadow-md transition-shadow">
-                    <div className="absolute top-0 right-0 p-4 opacity-10"><Clock className="w-20 h-20 text-slate-900 group-hover/card:scale-110 transition-transform duration-500" /></div>
-                    <div className="relative z-10 h-full flex flex-col justify-end">
-                      <div className="font-bold text-lg text-slate-900">On Time</div>
-                      <div className="text-slate-500 text-xs mt-1">Guaranteed Arrival</div>
+
+                  <div className="absolute bottom-8 right-8 bg-white border p-4 rounded-xl shadow flex gap-3 items-center">
+                    <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">AI Diagnosis</div>
+                      <div className="text-xs text-slate-500 italic">
+                        Compressor issue detected
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Floating Notification - Animated */}
-                <motion.div
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 1.8, duration: 0.6, type: "spring" }}
-                  className="mt-auto bg-slate-900/90 backdrop-blur-md text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 z-30 ring-1 ring-white/20"
-                >
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-r from-emerald-500 to-green-500 flex items-center justify-center shrink-0 shadow-lg shadow-green-500/30">
-                    <CheckCircle2 className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold">Technician Arrived</div>
-                    <div className="text-xs text-slate-400">Jignesh is at your door</div>
-                  </div>
-                  <div className="ml-auto text-xs font-mono bg-slate-800 px-2 py-1 rounded text-emerald-400">Now</div>
-                </motion.div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
-          {/* Decorative Glow Behind */}
-          <div className="absolute -inset-4 bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[3rem] blur-3xl -z-10 animate-pulse" />
+          {/* ================= MOBILE VERSION ================= */}
+          <div className="block lg:hidden flex justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 80 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+              className="relative w-[280px] rounded-[2.5rem] bg-slate-950 p-[8px]
+                         shadow-[0_30px_60px_-20px_rgba(0,0,0,0.5)]
+                         border-[5px] border-slate-900"
+            >
+              {/* Phone Notch */}
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-24 h-5 bg-slate-900 rounded-full z-10" />
+
+              {/* Screen */}
+              <div className="rounded-[2rem] overflow-hidden bg-white aspect-[9/19] p-5 flex flex-col">
+
+                <div className="h-6 w-32 bg-slate-200 rounded-lg mb-6" />
+
+                <div className="h-28 bg-indigo-600 rounded-xl p-4 text-white mb-4 shadow">
+                  <div className="font-bold text-sm uppercase italic">
+                    Quick Repair
+                  </div>
+                  <div className="text-[10px] opacity-80 uppercase tracking-tighter">
+                    Technician arriving in 25 mins
+                  </div>
+                </div>
+
+                <div className="h-24 bg-white border rounded-xl p-4 shadow-sm mb-4">
+                  <div className="font-bold text-sm uppercase italic">
+                    OTP Secure
+                  </div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-tighter">
+                    Close with verification
+                  </div>
+                </div>
+
+                <div className="mt-auto bg-white border p-3 rounded-xl shadow flex gap-3 items-center">
+                  <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="text-[10px] font-bold leading-tight">
+                    AI detected possible compressor fault.
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Soft Glow Background */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-[110%] h-[110%] bg-indigo-500/10 blur-[70px] -z-10 pointer-events-none" />
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24 mt-16"
-        >
-          <Link to="/register" className="h-14 px-8 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 w-full sm:w-auto">
-            Book a Service <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link to="/login" className="h-14 px-8 rounded-full bg-white/80 backdrop-blur-sm border border-slate-200 text-slate-700 font-bold flex items-center justify-center gap-2 hover:bg-white hover:border-indigo-200 hover:text-indigo-600 transition-all w-full sm:w-auto shadow-sm">
-            <PlayCircle className="w-5 h-5" /> How it Works
-          </Link>
-        </motion.div>
       </div>
     </section>
   );
@@ -249,86 +340,96 @@ const Hero = () => {
 
 const Features = () => {
   return (
-    <section id="features" className="py-24 md:py-32 relative">
+    <section id="features" className="py-32 md:py-48 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="max-w-3xl mx-auto text-center mb-24">
+        <div className="max-w-4xl mx-auto text-center mb-32">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-premium text-indigo-600 text-xs font-black uppercase tracking-[0.2em] mb-8"
+          >
+            Core Technologies
+          </motion.div>
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-6xl font-black tracking-tight mb-6 text-slate-900"
+            className="text-5xl md:text-7xl font-black tracking-[-0.04em] mb-8 text-slate-950 uppercase italic"
           >
-            Built for modern <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">service excellence.</span>
+            Engineered for <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600">Top Performance.</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-xl text-slate-600 leading-relaxed"
+            className="text-xl md:text-2xl text-slate-500 leading-relaxed font-medium"
           >
-            We stripped away the complexity. Real-time data, verified pros, and secure payments.
+            We didn't just build an app; we built a high-performance infrastructure for your home maintenance.
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 auto-rows-[350px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 auto-rows-[400px]">
           <BentoCard
-            className="md:col-span-2 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 text-white border-0"
+            className="md:col-span-2 bg-[#020617] text-white border-white/5"
             light={false}
-            icon={<Bot className="w-8 h-8 text-indigo-400" />}
-            title="AI Smart Troubleshooter"
-            desc="Not sure what's wrong? Our advanced AI diagnostic tool analyzes your appliance's symptoms to predict the issue and estimate repair costs instantly."
+            icon={<Bot className="w-10 h-10 text-indigo-400" />}
+            title="AI PROBLEM FINDER"
+            desc="Our proprietary LLM-driven troubleshooter analyzes symptoms with 94% accuracy, predicting parts and labor costs before the tech even arrives."
             visual={
-              <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-                <div className="w-[500px] h-[500px] bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
-                <div className="grid grid-cols-6 gap-2 opacity-50 relative z-10 rotate-12 scale-150">
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <div key={i} className="w-12 h-12 rounded-lg bg-white/5 border border-white/10 backdrop-blur-sm animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+              <div className="absolute inset-0 flex items-center justify-center opacity-40 pointer-events-none">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-30" />
+                <div className="w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" />
+                <div className="grid grid-cols-8 gap-3 opacity-20 relative z-10 rotate-[15deg] scale-[2]">
+                  {Array.from({ length: 40 }).map((_, i) => (
+                    <div key={i} className="w-16 h-16 rounded-xl bg-indigo-500/20 border border-indigo-400/30 backdrop-blur-3xl animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
                   ))}
                 </div>
               </div>
             }
           />
           <BentoCard
-            title="Technician Loyalty Program"
-            desc="Our technicians commit to the highest standards. Only those who maintain top-tier ratings and reliability scores stay active on our platform."
-            icon={<Award className="w-8 h-8 text-amber-500" />}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-100"
+            title="TRUST PROTOCOL"
+            desc="Verified Aadhaar checks and live-photo proof mean you know exactly who's entering your home. No exceptions."
+            icon={<Shield className="w-10 h-10 text-emerald-400" />}
+            className="bg-white border-slate-100 shadow-2xl shadow-indigo-500/5"
             light={true}
+            visual={<div className="absolute -bottom-10 -right-10 opacity-5"><Shield className="w-64 h-64 text-slate-900" /></div>}
           />
           <BentoCard
-            className="md:col-span-2 bg-white border-slate-200"
+            className="md:col-span-2 bg-white border-slate-100 shadow-2xl shadow-indigo-500/5 group/map-card"
             light={true}
-            icon={<MapPin className="w-8 h-8 text-indigo-600" />}
-            title="Smart Job Allocator"
-            desc="Our geo-spatial algorithm instantly broadcasts requests to the nearest 20km radius of available technicians. Zero wait time."
+            icon={<MapPin className="w-10 h-10 text-indigo-600" />}
+            title="SMART NEARBY TRACKING"
+            desc="Our serverless broadcast system triggers the 20 nearest available pros within seconds. Average arrival time: 32 minutes."
             visual={
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none overflow-hidden">
-                <div className="w-96 h-96 rounded-full border border-indigo-500 animate-[ping_3s_ease-in-out_infinite]" />
-                <div className="absolute w-64 h-64 rounded-full border border-indigo-400 animate-[ping_3s_ease-in-out_infinite_0.5s]" />
-                <MapPin className="absolute w-20 h-20 text-indigo-300" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none overflow-hidden">
+                <div className="w-[500px] h-[500px] rounded-full border-2 border-indigo-500/20 animate-[ping_4s_ease-in-out_infinite]" />
+                <div className="absolute w-[300px] h-[300px] rounded-full border-2 border-indigo-400/30 animate-[ping_4s_ease-in-out_infinite_1s]" />
+                <div className="absolute w-[700px] h-[700px] rounded-full border-2 border-violet-300/10 animate-[ping_5s_ease-in-out_infinite_2s]" />
+                <MapPin className="absolute w-24 h-24 text-indigo-600 group-hover/map-card:scale-125 transition-transform duration-700" />
               </div>
             }
           />
           <BentoCard
-            title="Secure OTP Verification"
-            desc="Jobs are only marked complete when you share your secret OTP code. 100% secure closure."
-            icon={<Lock className="w-8 h-8 text-emerald-500" />}
+            title="OTP CLOSURE"
+            desc="The job isn't done until you verify. Final payments are escrowed until secure OTP confirmation."
+            icon={<Lock className="w-10 h-10 text-fuchsia-500" />}
+            className="bg-slate-950 text-white border-white/5"
+            light={false}
             visual={
-              <div className="absolute bottom-6 right-6 pointer-events-none">
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4].map(i => <div key={i} className="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)] animate-bounce" style={{ animationDelay: `${i * 100}ms` }} />)}
-                </div>
+              <div className="absolute bottom-10 right-10 flex gap-3">
+                {[1, 2, 3, 4].map(i => <div key={i} className="w-4 h-4 rounded-full bg-fuchsia-500/50 shadow-[0_0_20px_rgba(217,70,239,0.8)] animate-pulse" />)}
               </div>
             }
           />
           <BentoCard
-            className="md:col-span-3 bg-white/50 backdrop-blur-sm border-purple-100"
-            title="Bi-Directional Feedback"
-            desc="A fair marketplace where both users and technicians rate each other. This builds a trusted community where quality is rewarded."
-            icon={<Star className="w-8 h-8 text-purple-500" />}
+            className="md:col-span-3 glass-premium border-indigo-100/50"
+            title="360° QUALITY ECOSYSTEM"
+            desc="We don't just fix appliances; we manage your home's digital twin. History, invoices, and warranties, all stored in one immutable timeline."
+            icon={<Cpu className="w-10 h-10 text-violet-600" />}
           />
         </div>
       </div>
@@ -337,152 +438,183 @@ const Features = () => {
 };
 
 const DetailedBreakdown = () => (
-  <section id="details" className="py-32 bg-white/30 relative overflow-hidden">
-    {/* Subtle noise texture for depth */}
-    <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
-
+  <section id="details" className="py-48 relative overflow-hidden">
+    <div className="absolute inset-0 bg-slate-50/50 -z-10" />
     <div className="max-w-7xl mx-auto px-6 relative z-10">
-      <div className="text-center mb-20">
-        <h2 className="text-4xl font-black mb-4 text-slate-900">Why ElectroCare is Different</h2>
-        <div className="h-1.5 w-24 bg-gradient-to-r from-indigo-500 to-violet-500 mx-auto rounded-full" />
+      <div className="text-center mb-32">
+        <h2 className="text-5xl md:text-7xl font-black mb-6 text-slate-950 tracking-[-0.04em] uppercase italic">The Advantage.</h2>
+        <div className="h-2 w-32 bg-indigo-600 mx-auto rounded-full" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
-        <div className="order-2 md:order-1 space-y-8">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0 shadow-sm">
-              <Globe className="w-6 h-6" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-center mb-48">
+        <div className="order-2 md:order-1 space-y-12">
+          <div className="group/item flex items-start gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-xl shadow-indigo-500/5 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all duration-500 hover:rotate-6">
+              <Globe className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2 text-slate-900">Hyper-Local Matching</h3>
-              <p className="text-slate-600 leading-relaxed">Unlike traditional aggregators, we use real-time geo-fencing. When you book, we ping technicians within a precise <span className="font-bold text-indigo-600">20km radius</span>. This means faster arrival times and lower travel costs.</p>
+              <h3 className="text-2xl font-black mb-4 text-slate-950 uppercase">Global Infrastructure, Local Precision</h3>
+              <p className="text-lg text-slate-500 leading-relaxed font-medium">We use real-time location systems to ensure that when you tap 'Book', every available expert in your 20km radius is notified instantly.</p>
             </div>
           </div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0 shadow-sm">
-              <Cpu className="w-6 h-6" />
+          <div className="group/item flex items-start gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-violet-50 border border-violet-100 flex items-center justify-center text-violet-600 shrink-0 shadow-xl shadow-violet-500/5 group-hover/item:bg-violet-600 group-hover/item:text-white transition-all duration-500 hover:rotate-6">
+              <Cpu className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2 text-slate-900">Intelligent Dispatch</h3>
-              <p className="text-slate-600 leading-relaxed">Our system filters for availability and skill set automatically. You don't browse lists; you get the best available expert assigned instantly.</p>
+              <h3 className="text-2xl font-black mb-4 text-slate-950 uppercase">Smart Assigning Logic</h3>
+              <p className="text-lg text-slate-500 leading-relaxed font-medium">Our system doesn't just find 'a' technician; it finds the *perfect* one based on appliance model, failure type, and historical success rates.</p>
             </div>
           </div>
         </div>
-        <div className="order-1 md:order-2 h-[400px] bg-gradient-to-br from-indigo-600 to-blue-500 rounded-[2.5rem] shadow-2xl shadow-indigo-500/30 flex items-center justify-center relative overflow-hidden group">
-          {/* Decorative Map/Network Visual */}
-          <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" />
-          <MapPin className="w-32 h-32 text-white drop-shadow-2xl animate-bounce" />
-          <div className="absolute bottom-10 px-8 py-3 bg-white/20 backdrop-blur-md rounded-full text-white font-bold text-sm border border-white/30 shadow-lg">
-            Searching within 20km...
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-        <div className="h-[400px] bg-gradient-to-br from-emerald-500 to-teal-500 rounded-[2.5rem] shadow-2xl shadow-emerald-500/30 flex items-center justify-center relative overflow-hidden group">
-          <Shield className="w-32 h-32 text-white drop-shadow-2xl group-hover:scale-110 transition-transform duration-500" />
-          <div className="absolute bottom-10 px-8 py-3 bg-white/20 backdrop-blur-md rounded-full text-white font-bold text-sm border border-white/30 shadow-lg">
-            100% Verified Professionals
-          </div>
-        </div>
-        <div className="space-y-8">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
-              <Users className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2 text-slate-900">Community Trust</h3>
-              <p className="text-slate-600 leading-relaxed">Safety is paramount. Our unique <span className="font-bold text-emerald-600">Bi-Directional Rating System</span> ensures accountability. Technicians rate customers, and customers rate technicians.</p>
+        <div className="order-1 md:order-2 h-[500px] bg-slate-950 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-violet-500/20" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-[80%] h-[80%] border border-white/5 rounded-full animate-[spin_20s_linear_infinite] p-10">
+              <div className="w-full h-full border border-white/10 rounded-full animate-[spin_10s_linear_infinite_reverse] p-10">
+                <Globe className="w-full h-full text-indigo-500/50" />
+              </div>
             </div>
           </div>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-sm">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold mb-2 text-slate-900">Loyalty Rewards</h3>
-              <p className="text-slate-600 leading-relaxed">Top-performing technicians earn points for excellent service. This incentivizes them to do their best work on your appliance, every single time.</p>
-            </div>
+          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 px-10 py-4 glass-premium text-white font-black text-xs uppercase tracking-[0.3em] backdrop-blur-3xl border-white/10">
+            Real-time Syncing...
           </div>
         </div>
       </div>
-    </div>
-  </section>
-);
 
-const HowItWorks = () => (
-  <section id="how-it-works" className="py-32 bg-white/40 relative overflow-hidden border-t border-slate-100/50">
-    <div className="max-w-5xl mx-auto px-6 relative z-10">
-      <h2 className="text-4xl font-black tracking-tight text-center mb-20 text-slate-900">Simple by design.</h2>
-
-      <div className="space-y-24">
-        <Step
-          num="01"
-          title="Request"
-          desc="Describe your issue. We broadcast it to purely verified local experts instantly."
-          align="left"
-          gradient="from-blue-500 to-indigo-500"
-        />
-        <Step
-          num="02"
-          title="Track"
-          desc="See your assigned technician move on the map in real-time. Know exactly when they arrive."
-          align="right"
-          gradient="from-indigo-500 to-violet-500"
-        />
-        <Step
-          num="03"
-          title="Verify"
-          desc="Review the estimate, approve work, and close the job securely with your unique OTP."
-          align="left"
-          gradient="from-violet-500 to-fuchsia-500"
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-24 items-center">
+        <div className="h-[500px] bg-gradient-to-br from-emerald-500 to-teal-700 rounded-[3rem] shadow-2xl relative overflow-hidden group flex items-center justify-center">
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+          <Shield className="w-48 h-48 text-white drop-shadow-2xl group-hover:scale-110 transition-transform duration-700 animate-pulse" />
+          <div className="absolute bottom-12 px-10 py-4 bg-white/10 backdrop-blur-3xl border border-white/20 rounded-2xl text-white font-black text-xs uppercase tracking-[0.3em]">
+            Certified Verification
+          </div>
+        </div>
+        <div className="space-y-12">
+          <div className="group/item flex items-start gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 shadow-xl shadow-emerald-500/5 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-all duration-500 hover:rotate-6">
+              <Users className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black mb-4 text-slate-950 uppercase">Trust and Reliability</h3>
+              <p className="text-lg text-slate-500 leading-relaxed font-medium">Trust goes both ways. Our marketplace rewards the best technicians AND the most respectful customers with priority matching.</p>
+            </div>
+          </div>
+          <div className="group/item flex items-start gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shrink-0 shadow-xl shadow-amber-500/5 group-hover/item:bg-amber-600 group-hover/item:text-white transition-all duration-500 hover:rotate-6">
+              <Award className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-black mb-4 text-slate-950 uppercase">Reward Points System</h3>
+              <p className="text-lg text-slate-500 leading-relaxed font-medium">Technicians earn 'Legacy Points' for every successful fix, unlocking better rates and premium job access. Quality is our currency.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 );
+
+const HowItWorks = () => {
+  const { scrollYProgress } = useScroll();
+  const pathLength = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
+
+  return (
+    <section id="how-it-works" className="py-48 bg-[#fdfdff] relative overflow-hidden">
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        <div className="text-center mb-32">
+          <h2 className="text-5xl md:text-7xl font-black tracking-[-0.04em] text-slate-950 uppercase italic mb-6">How it Works.</h2>
+          <div className="h-2 w-32 bg-indigo-600 mx-auto rounded-full" />
+        </div>
+
+        <div className="relative">
+          {/* Connection Path Animation (Desktop Only) */}
+          <div className="absolute left-1/2 -translate-x-1/2 top-20 bottom-20 w-[2px] bg-slate-100 hidden md:block">
+            <motion.div
+              style={{ scaleY: scrollYProgress, originY: 0 }}
+              className="w-full h-full bg-indigo-600"
+            />
+          </div>
+
+          <div className="space-y-48">
+            <Step
+              num="01"
+              title="IDENTIFY"
+              desc="Book via geo-location or use our AI diagnostic tool to pinpoint the exact failure point of your appliance."
+              align="left"
+              gradient="from-indigo-600 to-blue-600"
+            />
+            <Step
+              num="02"
+              title="EXECUTE"
+              desc="The nearest pro accepts instantly. Track their exact GPS position as they navigate to your coordinates."
+              align="right"
+              gradient="from-blue-600 to-violet-600"
+            />
+            <Step
+              num="03"
+              title="VALIDATE"
+              desc="Review digital estimates, authorize repairs, and close the session with a secure 4-digit OTP."
+              align="left"
+              gradient="from-violet-600 to-fuchsia-600"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
 
 const CTA = () => (
-  <section className="py-32 px-6">
-    <div className="max-w-5xl mx-auto bg-slate-900 rounded-[3rem] p-12 md:p-24 text-center text-white relative overflow-hidden shadow-2xl shadow-indigo-500/30 group">
+  <section className="py-48 px-6">
+    <div className="max-w-7xl mx-auto bg-[#020617] rounded-[4rem] p-16 md:p-32 text-center text-white relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(79,70,229,0.3)] group border border-white/5">
       <div className="absolute top-0 left-0 w-full h-full bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-full blur-[100px] group-hover:blur-[120px] transition-all duration-700" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-r from-indigo-600/30 to-fuchsia-600/30 rounded-full blur-[120px] group-hover:blur-[150px] transition-all duration-1000" />
 
-      <div className="relative z-10">
-        <h2 className="text-5xl md:text-7xl font-black tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-400">Ready to fix it?</h2>
-        <Link to="/register" className="inline-flex h-16 px-12 rounded-full bg-white text-indigo-900 text-xl font-bold items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_40px_-10px_rgba(255,255,255,0.4)]">
-          Get Started Now
-        </Link>
+      <div className="relative z-10 max-w-4xl mx-auto">
+        <h2 className="text-6xl md:text-9xl font-black tracking-[-0.05em] mb-12 bg-clip-text text-transparent bg-gradient-to-b from-white to-slate-500 uppercase italic">Fix it Forever.</h2>
+        <MagneticButton>
+          <Link to="/register" className="inline-flex h-20 px-16 rounded-3xl bg-white text-slate-950 text-2xl font-black items-center justify-center gap-4 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_20px_50px_-10px_rgba(255,255,255,0.4)] group/btn">
+            Get Started <ArrowRight className="w-8 h-8 group-hover/btn:translate-x-2 transition-transform" />
+          </Link>
+        </MagneticButton>
       </div>
     </div>
   </section>
 );
 
 const Footer = () => (
-  <footer className="py-16 border-t border-slate-100 bg-white/80 backdrop-blur-lg text-center relative overflow-hidden">
-    <div className="flex items-center justify-center gap-2 font-bold text-2xl tracking-tighter mb-8">
-      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-        <Zap className="h-5 w-5 fill-white" />
-      </div>
-      ElectroCare
-    </div>
-
-    <div className="flex justify-center gap-8 text-sm font-medium text-slate-500 mb-12">
-      <Link to="/privacy" className="hover:text-indigo-600 transition-colors">Privacy Policy</Link>
-      <Link to="/terms" className="hover:text-indigo-600 transition-colors">Terms & Conditions</Link>
-    </div>
-
-    <div className="max-w-md mx-auto h-px bg-slate-200 mb-8" />
-
-    <div className="flex flex-col items-center gap-4 text-sm text-slate-500">
-      <p>© 2026 ElectroCare Inc. All rights reserved.</p>
-
-      {/* Developer Credits - Enhanced */}
-      <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-default group">
-        <div className="p-1.5 bg-indigo-50 rounded-full group-hover:bg-indigo-100 transition-colors">
-          <Code2 className="w-3.5 h-3.5 text-indigo-600" />
+  <footer className="py-24 border-t border-slate-100 bg-[#fdfdff] text-center relative overflow-hidden">
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="flex items-center justify-center gap-3 font-black text-3xl tracking-tighter mb-10">
+        <div className="h-12 w-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl shadow-indigo-500/20">
+          <Zap className="h-7 w-7 fill-white" />
         </div>
-        <span>Crafted by <span className="text-slate-900 font-bold hover:text-indigo-600 transition-colors">Kailashsinh</span> &bull; <span className="text-slate-900 font-bold hover:text-indigo-600 transition-colors">Dhruvill</span> &bull; <span className="text-slate-900 font-bold hover:text-indigo-600 transition-colors">Abhay</span></span>
+        ElectroCare
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-12 text-sm font-black text-slate-950 uppercase tracking-widest mb-16">
+        <Link to="/privacy" className="hover:text-indigo-600 transition-all hover:-translate-y-1">Privacy</Link>
+        <Link to="/terms" className="hover:text-indigo-600 transition-all hover:-translate-y-1">Terms</Link>
+        <Link to="/contact" className="hover:text-indigo-600 transition-all hover:-translate-y-1">Contact</Link>
+        <Link to="/careers" className="hover:text-indigo-600 transition-all hover:-translate-y-1">Careers</Link>
+      </div>
+
+      <div className="h-px w-full bg-slate-200/50 mb-12" />
+
+      <div className="flex flex-col md:flex-row items-center justify-between gap-8 text-sm font-bold text-slate-400">
+        <p>© 2026 ElectroCare &bull; Home Support Systems</p>
+
+        {/* Developer Credits - Ultra Premium */}
+        <div className="flex items-center gap-4 px-8 py-4 rounded-2xl glass-premium border-indigo-50/50 group cursor-default">
+          <Code2 className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform" />
+          <span className="text-slate-900 flex items-center gap-2">
+            Engineered by
+            <span className="font-black text-indigo-600 hover:text-fuchsia-600 transition-colors cursor-pointer">Kailashsinh</span>,
+            <span className="font-black text-indigo-600 hover:text-fuchsia-600 transition-colors cursor-pointer">Dhruvill</span> &
+            <span className="font-black text-indigo-600 hover:text-fuchsia-600 transition-colors cursor-pointer">Abhay</span>
+          </span>
+        </div>
       </div>
     </div>
   </footer>
@@ -511,17 +643,17 @@ const BentoCard = ({ className, title, desc, icon, light = true, visual }: Bento
 
   return (
     <div
-      className={`group relative p-8 rounded-[2.5rem] border overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${light ? 'bg-white/80 backdrop-blur-sm border-slate-100 shadow-sm' : ''} ${className}`}
+      className={`group relative p-10 rounded-[3rem] border overflow-hidden flex flex-col justify-between transition-all duration-700 hover:shadow-2xl hover:-translate-y-2 ${light ? 'bg-white/40 backdrop-blur-3xl border-slate-200/50 shadow-xl shadow-indigo-500/5' : 'bg-slate-950 border-white/5'} ${className}`}
       onMouseMove={handleMouseMove}
     >
-      {/* Spotlight Effect - Color depends on background */}
+      {/* Spotlight Effect */}
       <motion.div
-        className="pointer-events-none absolute -inset-px rounded-[2.5rem] opacity-0 transition duration-300 group-hover:opacity-100"
+        className="pointer-events-none absolute -inset-px rounded-[3rem] opacity-0 transition duration-500 group-hover:opacity-100"
         style={{
           background: useMotionTemplate`
                radial-gradient(
-                 650px circle at ${mouseX}px ${mouseY}px,
-                 rgba(255, 255, 255, 0.4),
+                 800px circle at ${mouseX}px ${mouseY}px,
+                 ${light ? 'rgba(99, 102, 241, 0.08)' : 'rgba(255, 255, 255, 0.1)'},
                  transparent 80%
                )
              `,
@@ -529,11 +661,11 @@ const BentoCard = ({ className, title, desc, icon, light = true, visual }: Bento
       />
 
       <div className="relative z-10">
-        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 shadow-md transition-transform group-hover:scale-110 duration-300 ${light ? 'bg-indigo-50' : 'bg-white/10 backdrop-blur-md border border-white/20'}`}>
+        <div className={`w-20 h-20 rounded-2xl flex items-center justify-center mb-8 shadow-2xl transition-all group-hover:scale-110 group-hover:rotate-6 duration-500 ${light ? 'bg-indigo-50 text-indigo-600' : 'bg-white/5 border border-white/10 text-white'}`}>
           {icon}
         </div>
-        <h3 className="text-2xl font-bold mb-3 tracking-tight">{title}</h3>
-        <p className={`font-medium leading-relaxed text-lg ${light ? 'text-slate-500' : 'text-slate-300'}`}>{desc}</p>
+        <h3 className="text-3xl font-black mb-4 tracking-[-0.02em] uppercase italic">{title}</h3>
+        <p className={`font-bold leading-relaxed text-lg ${light ? 'text-slate-500' : 'text-slate-400'}`}>{desc}</p>
       </div>
       {visual && <div className="absolute inset-0 z-0 pointer-events-none">{visual}</div>}
     </div>
@@ -542,21 +674,21 @@ const BentoCard = ({ className, title, desc, icon, light = true, visual }: Bento
 
 const Step = ({ num, title, desc, align, gradient }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
+    initial={{ opacity: 0, x: align === 'left' ? -100 : 100 }}
+    whileInView={{ opacity: 1, x: 0 }}
     viewport={{ once: true, margin: "-100px" }}
-    transition={{ duration: 0.6 }}
-    className={`flex flex-col md:flex-row items-center gap-12 lg:gap-20 ${align === 'right' ? 'md:flex-row-reverse' : ''}`}
+    transition={{ duration: 0.8, type: "spring" }}
+    className={`flex flex-col md:flex-row items-center gap-16 lg:gap-32 ${align === 'right' ? 'md:flex-row-reverse' : ''}`}
   >
     <div className={`flex-1 text-center ${align === 'right' ? 'md:text-left' : 'md:text-right'}`}>
-      <h3 className={`text-4xl lg:text-5xl font-black mb-6 tracking-tight text-transparent bg-clip-text bg-gradient-to-r ${gradient}`}>{title}</h3>
-      <p className="text-xl text-slate-600 leading-relaxed font-medium">{desc}</p>
+      <h3 className={`text-5xl lg:text-7xl font-black mb-8 tracking-[-0.05em] text-transparent bg-clip-text bg-gradient-to-r uppercase italic ${gradient}`}>{title}</h3>
+      <p className="text-2xl text-slate-500 leading-relaxed font-bold italic">{desc}</p>
     </div>
     <div className="relative shrink-0 group">
-      <div className={`relative z-10 w-28 h-28 rounded-3xl bg-white border border-slate-100 shadow-2xl flex items-center justify-center text-4xl font-black text-slate-300 group-hover:scale-110 group-hover:text-white transition-all duration-300 group-hover:bg-gradient-to-br ${gradient}`}>
+      <div className={`relative z-10 w-32 h-32 rounded-[2.5rem] bg-white border border-slate-100 shadow-2xl flex items-center justify-center text-5xl font-black text-slate-200 group-hover:scale-110 group-hover:text-white transition-all duration-700 group-hover:rotate-12 group-hover:bg-gradient-to-br ${gradient}`}>
         {num}
       </div>
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-gradient-to-r ${gradient} opacity-20 rounded-full blur-3xl -z-10 group-hover:opacity-40 transition-all`} />
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r ${gradient} opacity-20 rounded-full blur-[60px] -z-10 group-hover:opacity-40 transition-all duration-700`} />
     </div>
     <div className="flex-1 hidden md:block" />
   </motion.div>

@@ -61,41 +61,60 @@ const LoginPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen flex relative overflow-hidden">
-      {}
-      <div className="hidden lg:flex lg:w-1/2 relative section-gradient-bg items-center justify-center p-12">
-        <ParticleBackground />
-        <div className="relative z-10 max-w-md">
-          <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.7 }}>
-            <div className="flex items-center gap-2.5 mb-8">
-              <div className="h-10 w-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg shadow-primary/20">
-                <Zap className="h-5 w-5 text-primary-foreground" />
+    <div className="min-h-screen flex relative overflow-hidden bg-[#fdfdff]">
+      {/* Dynamic Aurora Background Overlay */}
+      <div className="fixed inset-0 -z-10 bg-[#f8fafc] overflow-hidden">
+        <motion.div
+          className="absolute -inset-[100px] opacity-30 blur-[130px]"
+          animate={{
+            background: [
+              "radial-gradient(circle at 20% 20%, rgba(79, 70, 229, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 20% 80%, rgba(236, 72, 153, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(79, 70, 229, 0.4) 0%, transparent 50%)"
+            ]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
+
+      {/* Left side: Branding & Visuals (Hidden on small screens) */}
+      <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center p-20 pointer-events-none">
+        <div className="relative z-10 max-w-xl">
+          <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, type: "spring" }}>
+            <div className="flex items-center gap-4 mb-12">
+              <div className="h-16 w-16 rounded-[1.5rem] bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/40 rotate-12">
+                <Zap className="h-8 w-8 text-white fill-white" />
               </div>
-              <span className="text-2xl font-bold text-foreground">ElectroCare</span>
+              <span className="text-4xl font-black text-slate-950 tracking-tighter uppercase italic">ElectroCare</span>
             </div>
-            <h2 className="text-3xl font-bold text-foreground leading-tight">
-              Your appliances deserve <span className="gradient-text">the best care</span>
+
+            <h2 className="text-7xl font-black text-slate-950 leading-[0.85] tracking-tight uppercase italic mb-8">
+              Welcome to the <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 bg-300% animate-gradient">Future of service.</span>
             </h2>
-            <p className="text-muted-foreground mt-4 leading-relaxed">
-              Professional repair and maintenance platform connecting you with verified technicians.
+
+            <p className="text-xl font-bold text-slate-500 max-w-md leading-relaxed mb-16 italic">
+              Access the most advanced field intelligence platform for home maintenance.
             </p>
-            <div className="mt-10 space-y-4">
+
+            <div className="space-y-6">
               {[
-                { icon: Shield, text: 'Verified & Trusted Technicians' },
-                { icon: Clock, text: 'Real-time Service Tracking' },
-                { icon: Wrench, text: 'All Major Appliances Covered' },
+                { icon: Shield, text: 'SECURE AUTHENTICATION', color: 'text-indigo-600' },
+                { icon: Clock, text: 'REAL-TIME DASHBOARD', color: 'text-violet-600' },
+                { icon: Wrench, text: 'SMART RESOURCE ALLOCATION', color: 'text-fuchsia-600' },
               ].map((item, i) => (
                 <motion.div
                   key={item.text}
-                  initial={{ opacity: 0, x: -20 }}
+                  initial={{ opacity: 0, x: -30 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 + i * 0.15 }}
-                  className="flex items-center gap-3"
+                  transition={{ delay: 0.5 + i * 0.1, type: "spring" }}
+                  className="flex items-center gap-6 group"
                 >
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <item.icon className="h-4 w-4 text-primary" />
+                  <div className="p-4 rounded-2xl bg-white shadow-xl shadow-slate-200/50 group-hover:scale-110 transition-transform duration-500">
+                    <item.icon className={`h-6 w-6 ${item.color}`} />
                   </div>
-                  <span className="text-sm font-medium text-foreground">{item.text}</span>
+                  <span className="text-sm font-black text-slate-950 tracking-[0.2em]">{item.text}</span>
                 </motion.div>
               ))}
             </div>
@@ -103,49 +122,47 @@ const LoginPage: React.FC = () => {
         </div>
       </div>
 
-      {}
-      <div className="flex-1 flex items-center justify-center p-6 bg-gray-50/50 relative">
-        {}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-
+      {/* Right side: Modern Login Card */}
+      <div className="flex-1 flex items-center justify-center p-6 relative">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, type: "spring" }}
           className="w-full max-w-md relative z-10"
         >
-          {}
-          <div className="flex items-center justify-center gap-2 mb-8 lg:hidden">
-            <div className="h-10 w-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg shadow-primary/20">
-              <Zap className="h-5 w-5 text-primary-foreground" />
+          {/* Logo for mobile only */}
+          <div className="flex items-center justify-center gap-3 mb-10 lg:hidden">
+            <div className="h-12 w-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-xl shadow-indigo-500/30">
+              <Zap className="h-6 w-6 text-white fill-white" />
             </div>
-            <span className="text-2xl font-bold text-foreground">ElectroCare</span>
+            <span className="text-3xl font-black text-slate-950 tracking-tighter uppercase italic">ElectroCare</span>
           </div>
 
-          <div className="glass-card p-8 relative overflow-hidden">
-            {}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+          <div className="glass-premium p-10 md:p-14 relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.1)] border-white/40">
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600" />
 
-            <h1 className="text-2xl font-bold text-gray-900 text-center mb-2">Welcome back</h1>
-            <p className="text-gray-500 text-center text-sm mb-8">Sign in to your account to continue</p>
+            <div className="mb-12 text-center lg:text-left">
+              <h1 className="text-4xl font-black text-slate-950 tracking-[-0.04em] uppercase italic mb-2">Identify.</h1>
+              <p className="text-slate-500 font-bold italic">Secure entry into the ecosystem</p>
+            </div>
 
-            {}
-            <div className="flex bg-gray-100/80 p-1.5 rounded-xl mb-8">
+            {/* Role Switcher - Redesigned */}
+            <div className="flex bg-slate-200/50 p-2 rounded-2xl mb-10">
               {roles.map((r) => (
                 <button
                   key={r.key}
                   onClick={() => setRoleTab(r.key)}
-                  className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 relative ${roleTab === r.key
-                    ? 'text-white shadow-md'
-                    : 'text-gray-500 hover:text-gray-900'
+                  className={`flex-1 py-3.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all duration-500 relative ${roleTab === r.key
+                    ? 'text-white'
+                    : 'text-slate-500 hover:text-slate-900'
                     }`}
                 >
                   {roleTab === r.key && (
                     <motion.div
-                      layoutId="activeTab"
-                      className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-violet-600 rounded-lg"
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      layoutId="activeTabLogin"
+                      className="absolute inset-0 bg-slate-950 rounded-xl shadow-xl"
+                      transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                     />
                   )}
                   <span className="relative z-10">{r.label}</span>
@@ -159,71 +176,82 @@ const LoginPage: React.FC = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.3 }}
                 onSubmit={handleSubmit}
-                className="space-y-4"
+                className="space-y-6"
               >
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">
-                    {roleTab === 'admin' ? 'Email' : 'Email or Phone'}
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-950 tracking-widest uppercase ml-1">
+                    {roleTab === 'admin' ? 'E-MAIL' : 'IDENTIFIER'}
                   </label>
-                  <input
-                    type="text"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    required
-                    className="input-field"
-                    placeholder={roleTab === 'admin' ? 'admin@electrocare.com' : 'Enter email or phone'}
-                  />
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      required
+                      className="w-full h-14 px-6 bg-white/50 border-2 border-slate-200 rounded-2xl text-slate-950 font-bold placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 transition-all duration-300"
+                      placeholder={roleTab === 'admin' ? 'admin@electrocare.co' : 'Email or Phone Number'}
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1.5">Password</label>
-                  <div className="relative">
+                <div className="space-y-2">
+                  <label className="text-xs font-black text-slate-950 tracking-widest uppercase ml-1">PASSWORD</label>
+                  <div className="relative group">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="input-field pr-10"
-                      placeholder="Enter password"
+                      className="w-full h-14 px-6 bg-white/50 border-2 border-slate-200 rounded-2xl text-slate-950 font-bold placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-100 transition-all duration-300 pr-14"
+                      placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-indigo-600 transition-colors"
                     >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
                 </div>
 
-                {roleTab !== 'admin' && (
-                  <div className="text-right">
-                    <Link to={`/forgot-password?role=${roleTab}`} className="text-sm text-primary hover:underline font-medium">
-                      Forgot password?
-                    </Link>
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="remember" className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                    <label htmlFor="remember" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Keep Session</label>
                   </div>
-                )}
+                  {roleTab !== 'admin' && (
+                    <Link to={`/forgot-password?role=${roleTab}`} className="text-xs font-black text-indigo-600 hover:text-fuchsia-600 transition-colors uppercase tracking-wider">
+                      Lost Code?
+                    </Link>
+                  )}
+                </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-primary w-full flex items-center justify-center gap-2"
+                  className="btn-premium w-full h-16 text-lg uppercase italic tracking-[0.2em]"
                 >
-                  {loading && <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />}
-                  Sign in
+                  {loading ? (
+                    <div className="h-6 w-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    'Initiate Login'
+                  )}
                 </button>
               </motion.form>
             </AnimatePresence>
 
             {roleTab !== 'admin' && (
-              <p className="text-center text-sm text-muted-foreground mt-6">
-                Don't have an account?{' '}
-                <Link to={`/register?role=${roleTab}`} className="text-primary hover:underline font-medium">
-                  Sign up
+              <div className="mt-12 text-center">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">New to the system?</p>
+                <Link to={`/register?role=${roleTab}`}>
+                  <button className="w-full h-14 rounded-2xl border-2 border-slate-950 text-slate-950 font-black uppercase italic tracking-widest hover:bg-slate-950 hover:text-white transition-all duration-500 active:scale-95">
+                    Create Identity
+                  </button>
                 </Link>
-              </p>
+              </div>
             )}
           </div>
         </motion.div>

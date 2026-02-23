@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '@/api/admin';
 import { Search, User, CheckCircle, Pencil, Trash2, X, Save } from 'lucide-react';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -17,7 +18,7 @@ const UserManagement: React.FC = () => {
     const [search, setSearch] = useState('');
     const { toast } = useToast();
 
-    
+
     const [editingUser, setEditingUser] = useState<any>(null);
     const [editForm, setEditForm] = useState<any>({});
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -70,87 +71,101 @@ const UserManagement: React.FC = () => {
     if (loading) return <LoadingSkeleton rows={5} />;
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-                <div className="relative w-64">
+        <div className="space-y-10 pb-20 relative overflow-hidden">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-slate-950 uppercase italic tracking-tight">User <span className="text-indigo-600">Registry</span></h1>
+                    <p className="text-slate-500 font-bold italic text-sm">Citizen asset management & clearance protocols.</p>
+                </div>
+                <div className="relative group w-full md:w-80">
                     <input
                         type="text"
-                        placeholder="Search users..."
+                        placeholder="Scan Registry..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none"
+                        className="w-full h-14 pl-12 pr-6 bg-white/50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold placeholder:slate-400"
                     />
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase">User</th>
-                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Contact</th>
-                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Status</th>
-                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase">Wallet</th>
-                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredUsers.map((user) => (
-                            <tr key={user._id} className="hover:bg-gray-50/50">
-                                <td className="p-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                                            <User className="w-4 h-4 text-gray-600" />
+            {/* User Data Matrix */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <AnimatePresence mode="popLayout">
+                    {filteredUsers.map((user, idx) => (
+                        <motion.div
+                            key={user._id}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="glass-premium rounded-[2.5rem] p-8 border-white/60 shadow-xl hover:shadow-2xl transition-all group relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-125 transition-transform duration-1000">
+                                <User className="h-40 w-40 text-indigo-600" />
+                            </div>
+
+                            <div className="space-y-6 relative z-10">
+                                <div className="flex justify-between items-start gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 shadow-lg shadow-indigo-500/5">
+                                            <span className="text-2xl font-black italic">{user.name?.charAt(0) || 'U'}</span>
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">{user.name}</p>
-                                            <p className="text-xs text-gray-500">Loyalty: {user.loyalty_points}</p>
+                                            <h3 className="text-lg font-black text-slate-950 uppercase italic tracking-tight leading-tight">{user.name}</h3>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Loyalty: {user.loyalty_points || 0} pts</p>
                                         </div>
                                     </div>
-                                </td>
-                                <td className="p-4">
-                                    <p className="text-sm text-gray-600">{user.email}</p>
-                                    <p className="text-sm text-gray-500">{user.phone}</p>
-                                </td>
-                                <td className="p-4">
-                                    {user.isVerified ? (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                                            <CheckCircle className="w-3" /> Verified
-                                        </span>
-                                    ) : (
-                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700">
-                                            Pending
-                                        </span>
-                                    )}
-                                </td>
-                                <td className="p-4 font-medium text-gray-900">₹{user.wallet_balance || 0}</td>
-                                <td className="p-4 text-right">
-                                    <div className="flex justify-end gap-2">
+                                    <div className="flex gap-2">
                                         <button
                                             onClick={() => handleEdit(user)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                            title="Edit User"
+                                            className="h-10 w-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all"
                                         >
-                                            <Pencil className="w-4 h-4" />
+                                            <Pencil className="h-4 w-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(user._id)}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Delete User"
+                                            className="h-10 w-10 rounded-xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="h-4 w-4" />
                                         </button>
                                     </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </div>
+
+                                <div className="space-y-4 pt-6 border-t border-slate-100">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification Status</span>
+                                        {user.isVerified ? (
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                <CheckCircle className="w-3 h-3" /> Verified
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-amber-50 text-amber-700 border border-amber-100">
+                                                Pending
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Digital Wallet</p>
+                                            <p className="text-lg font-black text-slate-900 italic mt-1">₹{user.wallet_balance || 0}</p>
+                                        </div>
+                                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contact Hash</p>
+                                            <p className="text-[10px] font-black text-slate-900 uppercase italic mt-2 truncate">{user.email}</p>
+                                            <p className="text-[10px] font-bold text-slate-500 mt-0.5">{user.phone}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
             </div>
 
-            {}
+            { }
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
                 <DialogContent>
                     <DialogHeader>

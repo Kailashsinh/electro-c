@@ -1,148 +1,162 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Loader2, ArrowLeft, Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from '@/components/ui/form';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authApi } from '@/api/auth';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Zap, ArrowLeft, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
-const formSchema = z.object({
-    email: z.string().email('Please enter a valid email address'),
-    role: z.enum(['user', 'technician']),
-});
+const ForgotPasswordPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const role = searchParams.get('role') || 'user';
+  const [step, setStep] = useState<'email' | 'reset'>('email');
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-export default function ForgotPassword() {
-    const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const [isLoading, setIsLoading] = useState(false);
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const fn = role === 'technician' ? authApi.forgotPasswordTechnician : authApi.forgotPasswordUser;
+      await fn({ email });
+      toast({ title: 'Protocol Initiated', description: 'Access code dispatched to your device.' });
+      setStep('reset');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Failed to dispatch code', variant: 'destructive' });
+    } finally { setLoading(false); }
+  };
 
-    const defaultRole = (searchParams.get('role') as 'user' | 'technician') || 'user';
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const fn = role === 'technician' ? authApi.resetPasswordTechnician : authApi.resetPasswordUser;
+      await fn({ email, otp, newPassword });
+      toast({ title: 'Identity Restored', description: 'Your new credentials are now active.' });
+      navigate('/login');
+    } catch (err: any) {
+      toast({ title: 'Error', description: err.response?.data?.message || 'Restoration failed', variant: 'destructive' });
+    } finally { setLoading(false); }
+  };
 
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            email: '',
-            role: defaultRole,
-        },
-    });
+  return (
+    <div className="min-h-screen flex relative overflow-hidden bg-[#fdfdff]">
+      {/* Dynamic Aurora Background Overlay */}
+      <div className="fixed inset-0 -z-10 bg-[#f8fafc] overflow-hidden">
+        <motion.div
+          className="absolute -inset-[100px] opacity-30 blur-[130px]"
+          animate={{
+            background: [
+              "radial-gradient(circle at 10% 90%, rgba(79, 70, 229, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 90% 10%, rgba(124, 58, 237, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.4) 0%, transparent 50%)",
+              "radial-gradient(circle at 10% 90%, rgba(79, 70, 229, 0.4) 0%, transparent 50%)"
+            ]
+          }}
+          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+        />
+      </div>
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsLoading(true);
-        try {
-            if (values.role === 'user') {
-                await authApi.forgotPasswordUser({ email: values.email });
-            } else {
-                await authApi.forgotPasswordTechnician({ email: values.email });
-            }
+      <div className="flex-1 flex items-center justify-center p-6 relative">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, type: "spring" }}
+          className="w-full max-w-md relative z-10"
+        >
+          <div className="glass-premium p-10 md:p-14 relative overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.1)] border-white/40 text-center">
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600" />
 
-            toast.success('OTP sent successfully!', {
-                description: 'Please check your email for the reset code.',
-            });
-
-            
-            navigate('/reset-password', { state: { email: values.email, role: values.role } });
-        } catch (error: any) {
-            toast.error('Failed to send OTP', {
-                description: error.response?.data?.message || 'Please check your email and try again.',
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    return (
-        <div className="container relative flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-1 lg:px-0 min-h-screen bg-muted/50">
-            <div className="lg:p-8">
-                <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
-                                    <ArrowLeft className="h-4 w-4" />
-                                </Button>
-                                <CardTitle className="text-2xl">Forgot Password</CardTitle>
-                            </div>
-                            <CardDescription>
-                                Enter your email address to receive a password reset OTP.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                    <FormField
-                                        control={form.control}
-                                        name="role"
-                                        render={({ field }) => (
-                                            <FormItem className="space-y-3">
-                                                <FormLabel>I am a...</FormLabel>
-                                                <FormControl>
-                                                    <RadioGroup
-                                                        onValueChange={field.onChange}
-                                                        defaultValue={field.value}
-                                                        className="flex flex-row space-x-4"
-                                                    >
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="user" id="user" />
-                                                            <Label htmlFor="user">User</Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="technician" id="technician" />
-                                                            <Label htmlFor="technician">Technician</Label>
-                                                        </div>
-                                                    </RadioGroup>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Email</FormLabel>
-                                                <FormControl>
-                                                    <div className="relative">
-                                                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                                        <Input placeholder="name@example.com" className="pl-9" {...field} />
-                                                    </div>
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <Button type="submit" className="w-full" disabled={isLoading}>
-                                        {isLoading ? (
-                                            <>
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Sending OTP...
-                                            </>
-                                        ) : (
-                                            'Send OTP'
-                                        )}
-                                    </Button>
-                                </form>
-                            </Form>
-                        </CardContent>
-                    </Card>
-                </div>
+            <div className="flex justify-center mb-8">
+              <div className="h-16 w-16 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-2xl shadow-indigo-500/30">
+                <Zap className="h-8 w-8 text-white fill-white" />
+              </div>
             </div>
-        </div>
-    );
-}
+
+            <h1 className="text-3xl font-black text-slate-950 tracking-[-0.04em] uppercase italic mb-2">
+              {step === 'email' ? 'Restore.' : 'Rewrite.'}
+            </h1>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest italic mb-10">
+              {step === 'email' ? 'Identity Recovery Protocol' : 'New credential initialization'}
+            </p>
+
+            <AnimatePresence mode="wait">
+              {step === 'email' ? (
+                <motion.form
+                  key="email-step"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  onSubmit={handleSendOtp}
+                  className="space-y-6"
+                >
+                  <div className="space-y-2 text-left">
+                    <label className="text-xs font-black text-slate-950 tracking-widest uppercase ml-1">email NUMBER</label>
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      placeholder="ENTER REGISTERED email"
+                      className="w-full h-14 px-6 bg-white/50 border-2 border-slate-200 rounded-2xl text-slate-950 font-bold focus:outline-none focus:border-indigo-600 transition-all placeholder:text-slate-400 placeholder:text-xs tracking-wider"
+                    />
+                  </div>
+                  <button type="submit" disabled={loading} className="btn-premium w-full h-16 text-lg uppercase italic tracking-[0.2em] shadow-xl">
+                    {loading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : 'Dispatch Code'}
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.form
+                  key="reset-step"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  onSubmit={handleReset}
+                  className="space-y-6"
+                >
+                  <div className="space-y-4 text-left">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-950 tracking-widest uppercase ml-1">AUTHENTICATION CODE</label>
+                      <input
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        required
+                        placeholder="••••••"
+                        className="w-full h-16 px-6 bg-indigo-50/50 border-2 border-indigo-200 rounded-2xl text-slate-950 font-black text-center tracking-[0.8em] text-2xl focus:outline-none focus:border-indigo-600 transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-950 tracking-widest uppercase ml-1">NEW PASSWORD</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        placeholder="INITIATE NEW KEY"
+                        className="w-full h-14 px-6 bg-white/50 border-2 border-slate-200 rounded-2xl text-slate-950 font-bold focus:outline-none focus:border-indigo-600 transition-all placeholder:text-slate-400 placeholder:text-xs"
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" disabled={loading} className="btn-premium w-full h-16 text-lg uppercase italic tracking-[0.2em] shadow-xl">
+                    {loading ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : 'Confirm Rewire'}
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+            <div className="mt-12">
+              <Link to="/login" className="text-xs font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors italic inline-flex items-center gap-2 group">
+                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Return to access point
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default ForgotPasswordPage;

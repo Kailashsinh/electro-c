@@ -133,7 +133,7 @@ const MyAppliances: React.FC = () => {
           <h1 className="text-2xl md:text-3xl lg:text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-indigo-800 to-gray-600 tracking-tight">
             My Appliances
           </h1>
-          <p className="text-gray-500 mt-3 text-base md:text-lg font-medium">Your premium device collection, reimagined.</p>
+          <p className="text-gray-500 mt-3 text-base md:text-lg font-medium">Manage all your home appliances in one place.</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -164,7 +164,7 @@ const MyAppliances: React.FC = () => {
                 <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 shadow-sm">
                   <Plus className="h-5 w-5" />
                 </div>
-                New Appliance Registration
+                Register a New Appliance
               </h2>
 
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
